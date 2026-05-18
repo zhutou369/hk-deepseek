@@ -1,10 +1,17 @@
 name: Gemini Auto Content Updater
 
 on:
-  # 每天北京时间上午 09:30 准时自动触发更新 (9:30 AM HKT = 1:30 AM UTC)
+  # 🎯 保持定时触发：每天北京时间早上 10:01 自动触发更新 (10:01 AM HKT = 2:01 AM UTC)
   schedule:
-    - cron: '30 1 * * *'
-  workflow_dispatch: # 允许你在 GitHub Web 界面上手动点击按钮随时触发测试
+    - cron: '01 2 * * *'
+
+  # 🎯 手动测试触发：允许在 GitHub 界面手动点击按钮，并配置可输入的数字选项
+  workflow_dispatch:
+    inputs:
+      post_count:
+        description: '本次手动测试生成的文章数量（如输入 3 或 5）'
+        required: true
+        default: '5' # 手动测试时默认是一次更新 5 篇
 
 # 🚀 2026 规范：在全局显式注入强制使用 Node 24 的环境变量
 env:
@@ -19,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. 检出 11ty 项目的全部源码（配置 fetch-depth: 0 保证 Git 历史完整，Push 时不冲突）
+    # 1. 检出 11ty 项目的全部源码
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
@@ -35,13 +42,13 @@ jobs:
     - name: Install @google/genai
       run: npm install @google/genai
 
-    # 4. 运行 Node 脚本，🌟 核心修复点 2：把这里彻底改成运行你最新的 autobot.js
+    # 4. 运行 Node 脚本：如果是定时运行，默认传入 5；如果是手动运行，则传入你填写的数字
     - name: Run Gemini Content Generator
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: node autobot.js
+      run: node autobot.js ${{ github.event.inputs.post_count || '5' }}
 
-    # 5. 🌟 核心修复点 3：检查是否有新文章诞生，并用带有特权 Token 的安全身份推回 GitHub
+    # 5. 检查是否有新文章诞生，并推回 GitHub
     - name: Commit and Push Changes back to Repo
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,10 +58,10 @@ jobs:
         
         git add .
         
-        # 检查是否有代码改变（包括 keywords.txt 的减少和 posts 内新 md 的增加），避免因没有文件更新导致报错
+        # 检查是否有代码改变（包括 keywords.json 的减少和 posts 内新 md 的增加）
         if ! git diff --cached --quiet; then
-          git commit -m "🤖 [Bot] 自动同步今日定时SEO文章并更新词库"
-          # 🌟 必须带着特权临时 Token 强制安全推回 main 分支
+          git commit -m "🤖 [Bot] 自动同步/手动测试：批量更新文章并同步词库"
+          # 必须带着特权临时 Token 强制安全推回 main 分支
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
           echo "✅ 成功反向将新文章与更新后的词库同步回 GitHub 仓库！"
         else
