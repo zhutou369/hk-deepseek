@@ -10,7 +10,7 @@ async function runAutoBot() {
         return; 
     }
 
-    // 從命令列參數中獲取需要生成的文章篇數（例如 node autobot.js 5）
+    // 從命令列參數中獲取需要生成的文章篇數
     const args = process.argv.slice(2);
     let maxPosts = parseInt(args[0], 10) || 1;
     console.log(`🤖 收到發文指令，本次任務嘗試批量生成: ${maxPosts} 篇文章`);
@@ -76,12 +76,11 @@ async function runAutoBot() {
         const currentTopic = keywords.shift();
         console.log(`當前推文選題確定: [ ${currentTopic} ]`);
 
-        // 強制使用香港本地時間提取日期，防止 GitHub Actions 環境因不一致時區造成文章檔名日期扣減一天
+        // 🌟 核心安全修正：強制轉化香港本地時間，並用正則表達式把預設的斜槓（/）替換為減號（-）
+        // 否則 Linux 系統在執行 writeFileSync 時會誤將 2026/05/19 當成資料夾路徑從而噴出 ENOENT 錯誤中斷！
         const now = new Date();
-        const yyyy = now.toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', year: 'numeric' });
-        const mm = now.toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', month: '2-digit' });
-        const dd = now.toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', day: '2-digit' });
-        const todayStr = `${yyyy}-${mm}-${dd}`;
+        const rawHkDate = now.toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', year: 'numeric', month: '2-digit', day: '2-digit' });
+        const todayStr = rawHkDate.replace(/\//g, '-'); 
         
         const randomId = Math.floor(100 + Math.random() * 900); 
 
@@ -107,7 +106,7 @@ async function runAutoBot() {
     【重要核心要求】：
     1. 請將本次的主題 "${currentTopic}" 翻譯為一個乾淨、地道、用連字符隔開的【純英文短語】，作為 URL 的別名（Slug）。
     2. 字数嚴格控制在 1200 - 2000 字之間。多用結構化列表、二級標題（##）、三級標題（###）。
-    3. 全篇文本（包含標題和描述）必須使用正宗的香港繁體字，多使用本地常用詞（如：教學、優化、中小企、數字轉型、網絡、顯示卡）。
+    3. 全篇文本（包含標題 and 描述）必須使用正宗的香港繁體字，多使用本地常用詞（如：教學、優化、中小企、數字轉型、網絡、顯示卡）。
     4. 嚴格按以下 Markdown 格式輸出頭部元數據，禁止在最外層包含 \`\`\`markdown 包裹外殼，必須直接以 --- 開頭：
 
     ---
@@ -119,7 +118,7 @@ async function runAutoBot() {
     permalink: "/posts/${todayStr}-你的純英文短語-${randomId}/index.html"
     ---
 
-    【注意】：請務必將上面 permalink 裡面的 "你的純英文短語" 換為你真正翻譯出來的英文 Slug。不要保留任何多餘的引號或括號。
+    【注意】：請務必將上面 permalink 裡面的 "你的純英文短語" 换為你真正翻譯出來的英文 Slug。不要保留任何多餘的引號或括號。
     ${imagePromptInstruction}
 
     這裡開始寫文章正文。請多用二級標題（##）、三級標題（###）對內容進行多層級切分，保證極佳的 SEO 可讀性與結構性。
@@ -127,7 +126,7 @@ async function runAutoBot() {
 
         try {
             console.log('正在連接 Gemini API 生產高質量繁體內容...');
-            // 🎯 嚴格鎖定 gemini-2.5-flash 模型
+            // 🎯 嚴格鎖定官方高併發專用 gemini-2.5-flash 模型
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: prompt,
