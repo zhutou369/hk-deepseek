@@ -1,9 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Content Manager</title>
-  <link href="/ai1/config.yml" type="text/yaml" rel="cms-config-url" />
+  <title>DeepSeek 站长后台管理系统</title>
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+  <script>
+    // 强制初始化本地配置，让 CMS 绕过远程 config.yml 加载步骤
+    window.CMS_CONFIG = {
+      backend: {
+        name: "github",
+        repo: "zhutou369/deepseek-chat",
+        branch: "main",
+        base_url: "https://rough-pine-de1b.zhutou757.workers.dev",
+        auth_endpoint: "/auth"
+      },
+      media_folder: "static/assets/img",
+      public_folder: "/assets/img",
+      display_type: "list",
+      show_preview_links: false,
+      collections: [
+        {
+          name: "posts",
+          label: "文章发布",
+          folder: "posts",
+          create: true,
+          slug: "{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}-{{slug}}",
+          fields: [
+            { label: "文章标题", name: "title", widget: "string" },
+            { label: "SEO 页面描述", name: "description", widget: "string" },
+            { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD HH:mm:ss" },
+            { label: "正文内容", name: "body", widget: "markdown" },
+            { label: "标签", name: "tags", widget: "hidden", default: ["posts"] },
+            { label: "布局", name: "layout", widget: "hidden", default: "post.njk" }
+          ]
+        }
+      ]
+    };
+  </script>
 </body>
+</html>
