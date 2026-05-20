@@ -1,48 +1,110 @@
-# ... 前面 1~5 步完全保持不变 ...
+name: Gemini Auto Content Updater
 
-    # 5. 编译 11ty 网站
+on:
+  # 🎯 每天北京/香港時間早上 08:12 自動觸發更新 (100% 準時交由外部 Cloudflare 轟炸喚醒)
+  schedule:
+    - cron: '12 0 * * *'
+
+  # 🎯 手動測試觸發：允許在 GitHub 介面手動點擊按鈕，並配置可輸入的數字選項
+  workflow_dispatch:
+    inputs:
+      post_count:
+        description: '本次手動測試生成的文章數量（可選 1-9，不填寫默認更新 1 篇）'
+        required: true
+        default: '1' # 🌟 核心優化：手動測試默認也改為 1 篇
+
+# 🚀 2026 規範：在全局顯式注入強制使用 Node 24 的環境變量
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  TZ: 'Asia/Hong_Kong' # 強制伺服器時區為香港標準時間，確保與你的站群完全對齊
+
+# 允許機器人反向寫入倉庫的最高權限
+permissions:
+  contents: write
+
+jobs:
+  build-and-post:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 檢出 11ty 項目的全部源碼
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # 2. 部署最新一代的 Node.js 24 生產環境
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: 'npm' # 自動緩存依賴，加速後續構建
+
+    # 3a. 🛠️ 如果 package.json 存在，則執行 npm install
+    - name: Install Existing Dependencies
+      run: npm install
+      if: hashFiles('package.json') != ''
+
+    # 3b. 🛠️ 如果 package.json 不存在，則初始化
+    - name: Initialize Project If Missing
+      run: npm init -y
+      if: hashFiles('package.json') == ''
+
+    # 3c. 安裝核心官方 AI SDK 與 11ty 構建工具
+    - name: Install Production Tools
+      run: npm install @google/genai @11ty/eleventy --save-dev
+
+    # 4. 運行内容生成器生成新文章
+    - name: Run Gemini Content Generator
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: node autobot.js ${{ github.event.inputs.post_count || '1' }}
+
+    # 5. 強制解鎖 node_modules 可執行特權并编译网站 
+    # (同時在 src 源码目录和 _site 编译目录双重塞入验证文件，确保跟着源码一起被推回 GitHub)
     - name: Build Eleventy Site
-      run: |
-        chmod -R +x ./node_modules/.bin/
-        npx @11ty/eleventy
-
-    # 5b. 🌟 提前把验证文件塞进编译目录，确保它能跟着一起被部署上线
-    - name: Pre-create Bing Verification File
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
-      run: echo "$INDEXNOW_KEY" > ./_site/$INDEXNOW_KEY.txt
+      run: |
+        chmod -R +x ./node_modules/.bin/
+        if [ -n "$INDEXNOW_KEY" ]; then
+          echo "$INDEXNOW_KEY" > ./src/$INDEXNOW_KEY.txt
+        fi
+        npx @11ty/eleventy
+        if [ -n "$INDEXNOW_KEY" ]; then
+          echo "$INDEXNOW_KEY" > ./_site/$INDEXNOW_KEY.txt
+          echo "✅ 成功在内存源码与发布目录创建必应物理校验文件"
+        fi
 
-    # 6. 檢查是否有新文章誕生，並自動推回 GitHub
+    # 6. 🌟【位置提前】檢查是否有新文章和驗證文件誕生，第一時間暴力推回 GitHub 主網
     - name: Commit and Push Changes back to Repo
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.name "Gemini-Content-Bot"
         git config --global user.email "bot@yourdomain.com"
-        git add src/posts/ src/keywords.json
+        
+        # 🌟 核心修正：除了文章和词库，把必应的校验 txt 文件也一起打包强推上去！
+        git add src/posts/ src/keywords.json src/*.txt
+        
         if ! git diff --cached --quiet; then
-          git commit -m "🤖 [Bot] 自動同步：更新文章並同步詞庫"
+          git commit -m "🤖 [Bot] 自動同步/手動測試：更新文章、驗證文件並同步詞庫"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main -f
+          echo "✅ 成功將新文章與更新後的詞庫、驗證文件同步回 GitHub 遠端倉庫！"
+        else
+          echo "⚠️ 檢查發現本地文件無任何变化，本次自動跳過源碼推送。"
         fi
 
-    # 7. 🚀 这里是你原本的部署步骤（假设是 GitHub Pages 部署，请对照你原有的代码）
-    - name: Upload Artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./_site
-
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
-
-    # 8. 🌟【核心修复：死死锁在部署成功后】线上文件生效了，再轰炸必应 API 🌟
+    # 7. 🌟【决胜步骤：移至最末尾】等代码上线、线上海量 CDN 缓存刷新后，再全量推送 🌟
     - name: Execute Instant SEO Push to Bing
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
       run: |
-        # 延迟 5 秒确保 CDN 缓存刷新
-        sleep 5
+        # ⏳ 核心防线：强制线程睡眠 15 秒！给 Cloudflare Pages 或 GitHub Pages 留出充裕的线上拉取部署时差
+        echo "⏳ 正在等待线上服务器构建发布与 CDN 刷新缓存 (15s)..."
+        sleep 15
         
+        # 创建并执行临时的 Node 推送脚本
         cat << 'EOF' > bing-instant-push.js
         const fs = require('fs');
         const path = require('path');
@@ -78,6 +140,7 @@
             return `https://${DOMAIN}/${relativePath}`;
           });
 
+          // 过滤掉系统内部页面
           urlList = urlList.filter(url => !url.includes('404') && !url.includes('admin') && !url.endsWith('.txt'));
 
           if (urlList.length === 0) {
@@ -85,12 +148,12 @@
             process.exit(0);
           }
 
-          console.log(`🚀 网站已完全上线，正在将 ${urlList.length} 个活体 URL 发送给必应...`);
+          console.log(`🚀 检查到远端仓库已更新且网站已完全上线，正在将 ${urlList.length} 个活体 URL 发送给必应...`);
 
           const requestData = JSON.stringify({
             host: DOMAIN,
             key: BING_KEY,
-            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`,
+            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`, // 此时该线上路径已可以通过互联网访问
             urlList: urlList
           });
 
@@ -109,19 +172,19 @@
             res.on('data', (chunk) => body += chunk);
             res.on('end', () => {
               if (res.statusCode === 200 || res.statusCode === 202) {
-                console.log(`✅ 必应 100% 对暗号成功！状态码: ${res.statusCode}`);
+                console.log(`✅ [完美闭环] 必应 IndexNow 成功接收！状态码: ${res.statusCode} (100% 对暗号成功，已入蜘蛛抓取序列)`);
               } else {
                 console.error(`❌ 推送失败，状态码: ${res.statusCode}, 响应: ${body}`);
               }
             });
           });
 
-          req.on('error', (e) => console.error(`❌ 请求必应失败: ${e.message}`));
+          req.on('error', (e) => console.error(`❌ 请求必应接口失败: ${e.message}`));
           req.write(requestData);
           req.end();
 
         } catch (err) {
-          console.error("❌ 出错:", err);
+          console.error("❌ 自动化推送运行出错:", err);
         }
         EOF
         
