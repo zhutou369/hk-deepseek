@@ -61,22 +61,12 @@ jobs:
       run: node autobot.js ${{ github.event.inputs.post_count || '1' }}
 
     # 5. 強制解鎖 node_modules 可執行特權并编译网站 
-    # (同時在 src 源码目录和 _site 编译目录双重塞入验证文件，确保跟着源码一起被推回 GitHub)
     - name: Build Eleventy Site
-      env:
-        INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
       run: |
         chmod -R +x ./node_modules/.bin/
-        if [ -n "$INDEXNOW_KEY" ]; then
-          echo "$INDEXNOW_KEY" > ./src/$INDEXNOW_KEY.txt
-        fi
         npx @11ty/eleventy
-        if [ -n "$INDEXNOW_KEY" ]; then
-          echo "$INDEXNOW_KEY" > ./_site/$INDEXNOW_KEY.txt
-          echo "✅ 成功在内存源码与发布目录创建必应物理校验文件"
-        fi
 
-    # 6. 檢查是否有新文章和驗證文件誕生，第一時間暴力推回 GitHub 主網
+    # 6. 檢查是否有新文章誕生，第一時間推回 GitHub 主網
     - name: Commit and Push Changes back to Repo
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -84,27 +74,22 @@ jobs:
         git config --global user.name "Gemini-Content-Bot"
         git config --global user.email "bot@yourdomain.com"
         
-        # 🌟 除了文章和词库，把必应的校验 txt 文件也一起打包强推上去！
-        git add src/posts/ src/keywords.json src/*.txt
+        git add src/posts/ src/keywords.json
         
         if ! git diff --cached --quiet; then
-          git commit -m "🤖 [Bot] 自動同步/手動測試：更新文章、驗證文件並同步詞庫"
+          git commit -m "🤖 [Bot] 自動同步/手動測試：更新文章並同步詞庫"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main -f
-          echo "✅ 成功將新文章與更新後的詞庫、驗證文件同步回 GitHub 遠端倉庫！"
+          echo "✅ 成功將新文章與更新後的詞庫同步回 GitHub 遠端倉庫！"
         else
-          echo "⚠️ 檢查發現本地文件無任何变化，本次自動跳過源碼推送。"
+          echo "⚠️ 檢查發現本地文件無任何変化，本次自動跳過源碼推送。"
         fi
 
-    # 7. 🌟【决胜步骤】等远端代码上线、线上海量 CDN 缓存刷新后，再全量推送 🌟
+    # 7. 🌟【决胜步骤】走已验证站点的必应专属网关通道，实现免线上文件秒级接收 🌟
     - name: Execute Instant SEO Push to Bing
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
       run: |
-        # ⏳ 核心防线：强制线程睡眠 30 秒！给第三方托管平台留出绝对充裕的线上拉取、构建部署与 CDN 刷新时差
-        echo "⏳ 正在等待线上服务器构建发布与全球 CDN 刷新缓存 (30s)..."
-        sleep 30
-        
-        # 🌟 终极纯原生写入：将代码拆分为纯数组，彻底避开一切长文本截断、反引号冲突及多行转义地狱 🌟
+        # 🌟 终极纯原生写入：走必应官方直接信任网关，砍掉 keyLocation 依赖 🌟
         node -e '
         const fs = require("fs");
         const lines = [
@@ -143,16 +128,15 @@ jobs:
           "    console.log(\"ℹ️ 未发现有效页面，无需推送。\");",
           "    process.exit(0);",
           "  }",
-          "  console.log(\"🚀 检查到远端仓库已更新且网站已完全上线，正在将 \" + urlList.length + \" 个活体 URL 发送给必应...\");",
+          "  console.log(\"🚀 正在通过已验证网域通道将 \" + urlList.length + \" 个 URL 强制塞入必应收录队列...\");",
           "  const requestData = JSON.stringify({",
           "    host: DOMAIN,",
           "    key: BING_KEY,",
-          "    keyLocation: \"https://\" + DOMAIN + \"/\" + BING_KEY + \".txt\",",
           "    urlList: urlList",
           "  });",
           "  const options = {",
-          "    hostname: \"api.indexnow.org\",",
-          "    path: \"/IndexNow\",",
+          "    hostname: \"www.bing.com\",",
+          "    path: \"/webmaster/api.svc/json/PushPages?apikey=\" + BING_KEY,",
           "    method: \"POST\",",
           "    headers: {",
           "      \"Content-Type\": \"application/json; charset=utf-8\",",
@@ -164,7 +148,7 @@ jobs:
           "    res.on(\"data\", (chunk) => body += chunk);",
           "    res.on(\"end\", () => {",
           "      if (res.statusCode === 200 || res.statusCode === 202) {",
-          "        console.log(\"✅ [完美闭环] 必应 IndexNow 成功接收！状态码: \" + res.statusCode + \" (100% 对暗号成功)\");",
+          "        console.log(\"✅ [完美闭环] 必应专属 API 成功捕获站群！状态码: \" + res.statusCode);",
           "      } else {",
           "        console.error(\"❌ 推送失败，状态码: \" + res.statusCode + \", 响应: \" + body);",
           "      }",
