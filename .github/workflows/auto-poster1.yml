@@ -1,87 +1,48 @@
-name: Gemini Auto Content Updater
+# ... 前面 1~5 步完全保持不变 ...
 
-on:
-  # 🎯 每天北京/香港時間早上 08:12 自動觸發更新 (100% 準時交由外部 Cloudflare 轟炸喚醒)
-  schedule:
-    - cron: '12 0 * * *'
-
-  # 🎯 手動測試觸發：允許在 GitHub 介面手動點擊按鈕，並配置可輸入的數字選項
-  workflow_dispatch:
-    inputs:
-      post_count:
-        description: '本次手動測試生成的文章數量（可選 1-9，不填寫默認更新 1 篇）'
-        required: true
-        default: '1' # 🌟 核心優化：手動測試默認也改為 1 篇
-
-# 🚀 2026 規範：在全局顯式注入強制使用 Node 24 的環境變量
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-  TZ: 'Asia/Hong_Kong' # 強制伺服器時區為香港標準時間，確保與你的站群完全對齊
-
-# 允許機器人反向寫入倉庫的最高權限
-permissions:
-  contents: write
-
-jobs:
-  build-and-post:
-    runs-on: ubuntu-latest
-
-    steps:
-    # 1. 檢出 11ty 項目的全部源碼
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    # 2. 部署最新一代的 Node.js 24 生產環境
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-        cache: 'npm' # 自動緩存依賴，加速後續構建
-
-    # 3a. 🛠️ 如果 package.json 存在，則執行 npm install
-    - name: Install Existing Dependencies
-      run: npm install
-      if: hashFiles('package.json') != ''
-
-    # 3b. 🛠️ 如果 package.json 不存在，則初始化
-    - name: Initialize Project If Missing
-      run: npm init -y
-      if: hashFiles('package.json') == ''
-
-    # 3c. 安裝核心官方 AI SDK 與 11ty 構建工具
-    - name: Install Production Tools
-      run: npm install @google/genai @11ty/eleventy --save-dev
-
-    # 4. 🌟 核心優化：無論定時運行還是手動未填寫，後備默認值全量切換為 '1' 篇
-    - name: Run Gemini Content Generator
-      env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: node autobot.js ${{ github.event.inputs.post_count || '1' }}
-
-    # 5. 強制解鎖 node_modules 可執行特權，阻斷 Exit code 127 錯誤并编译网站
+    # 5. 编译 11ty 网站
     - name: Build Eleventy Site
       run: |
         chmod -R +x ./node_modules/.bin/
         npx @11ty/eleventy
 
-    # 5b. 🌟【新增核心步骤】动态生成物理密钥并推送至必应 IndexNow 🌟
+    # 5b. 🌟 提前把验证文件塞进编译目录，确保它能跟着一起被部署上线
+    - name: Pre-create Bing Verification File
+      env:
+        INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+      run: echo "$INDEXNOW_KEY" > ./_site/$INDEXNOW_KEY.txt
+
+    # 6. 檢查是否有新文章誕生，並自動推回 GitHub
+    - name: Commit and Push Changes back to Repo
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "Gemini-Content-Bot"
+        git config --global user.email "bot@yourdomain.com"
+        git add src/posts/ src/keywords.json
+        if ! git diff --cached --quiet; then
+          git commit -m "🤖 [Bot] 自動同步：更新文章並同步詞庫"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main -f
+        fi
+
+    # 7. 🚀 这里是你原本的部署步骤（假设是 GitHub Pages 部署，请对照你原有的代码）
+    - name: Upload Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./_site
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+    # 8. 🌟【核心修复：死死锁在部署成功后】线上文件生效了，再轰炸必应 API 🌟
     - name: Execute Instant SEO Push to Bing
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
       run: |
-        # 1. 🎯 【关键修复】在编译出的静态根目录 _site 下，强行塞入必应所需要的校验文件！
-        # 这样当必应收到请求来反向检查 https://hk-deepseek.com/你的KEY.txt 时，就能无缝通过。
-        if [ -n "$INDEXNOW_KEY" ]; then
-          echo "$INDEXNOW_KEY" > ./_site/$INDEXNOW_KEY.txt
-          echo "✅ 成功在内存根目录创建必应物理校验文件: $INDEXNOW_KEY.txt"
-        else
-          echo "❌ 错误: 未能在环境中找到 INDEXNOW_KEY"
-          exit 1
-        fi
-
-        # 2. 创建并执行临时的 Node 推送脚本
+        # 延迟 5 秒确保 CDN 缓存刷新
+        sleep 5
+        
         cat << 'EOF' > bing-instant-push.js
         const fs = require('fs');
         const path = require('path');
@@ -117,7 +78,6 @@ jobs:
             return `https://${DOMAIN}/${relativePath}`;
           });
 
-          // 过滤掉系统内部文件
           urlList = urlList.filter(url => !url.includes('404') && !url.includes('admin') && !url.endsWith('.txt'));
 
           if (urlList.length === 0) {
@@ -125,12 +85,12 @@ jobs:
             process.exit(0);
           }
 
-          console.log(`🚀 正在将 ${urlList.length} 个活体 URL 发送给必应...`);
+          console.log(`🚀 网站已完全上线，正在将 ${urlList.length} 个活体 URL 发送给必应...`);
 
           const requestData = JSON.stringify({
             host: DOMAIN,
             key: BING_KEY,
-            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`, // 指向刚才物理生成的 txt 地址
+            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`,
             urlList: urlList
           });
 
@@ -149,41 +109,20 @@ jobs:
             res.on('data', (chunk) => body += chunk);
             res.on('end', () => {
               if (res.statusCode === 200 || res.statusCode === 202) {
-                console.log(`✅ 必应 IndexNow 成功接收！状态码: ${res.statusCode} (已成功送达必应抓取队列)`);
+                console.log(`✅ 必应 100% 对暗号成功！状态码: ${res.statusCode}`);
               } else {
                 console.error(`❌ 推送失败，状态码: ${res.statusCode}, 响应: ${body}`);
               }
             });
           });
 
-          req.on('error', (e) => console.error(`❌ 请求必应接口失败: ${e.message}`));
+          req.on('error', (e) => console.error(`❌ 请求必应失败: ${e.message}`));
           req.write(requestData);
           req.end();
 
         } catch (err) {
-          console.error("❌ 自动化推送运行出错:", err);
+          console.error("❌ 出错:", err);
         }
         EOF
         
         node bing-instant-push.js
-
-    # 6. 檢查是否有新文章誕生，並自動推回 GitHub
-    - name: Commit and Push Changes back to Repo
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config --global user.name "Gemini-Content-Bot"
-        git config --global user.email "bot@yourdomain.com"
-        
-        # 只將源碼與詞庫變更推回 main 分支
-        git add src/posts/ src/keywords.json
-        
-        # 檢查是否有代碼改變（包括 keywords.json 的減少、posts 內新 md 的增加）
-        if ! git diff --cached --quiet; then
-          git commit -m "🤖 [Bot] 自動同步/手動測試：更新文章並同步詞庫"
-          # 在最後加上 -f 特權鎖，暴力解決 [rejected] 歷史斷層衝突，強制覆蓋遠端
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main -f
-          echo "✅ 成功將新文章與更新後的詞庫同步回 GitHub 倉庫！"
-        else
-          echo "⚠️ 檢查發現本地文件無任何変化，本次自動跳過推送。"
-        fi
