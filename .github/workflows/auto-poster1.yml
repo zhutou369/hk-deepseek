@@ -60,11 +60,108 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: node autobot.js ${{ github.event.inputs.post_count || '1' }}
 
-    # 5. 強制解鎖 node_modules 可執行特權，阻斷 Exit code 127 錯誤
+    # 5. 強制解鎖 node_modules 可執行特權，阻斷 Exit code 127 錯誤并编译网站
     - name: Build Eleventy Site
       run: |
         chmod -R +x ./node_modules/.bin/
         npx @11ty/eleventy
+
+    # 5b. 🌟【新增核心步骤】已验证站点免文件实时推送至必应 IndexNow 🌟
+    - name: Execute Instant SEO Push to Bing
+      env:
+        INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+      run: |
+        # 创建一个临时的 Node 推送脚本并直接执行，无需污染你的源码目录
+        cat << 'EOF' > bing-instant-push.js
+        const fs = require('fs');
+        const path = require('path');
+        const https = require('https');
+
+        const DOMAIN = "hk-deepseek.com";
+        const BING_KEY = process.env.INDEXNOW_KEY;
+        const OUTPUT_DIR = path.join(__dirname, '_site'); // 对应 11ty 的编译发布目录
+
+        if (!BING_KEY) {
+          console.error("❌ 错误: 未检测到环境变量 INDEXNOW_KEY，取消推送。");
+          process.exit(1);
+        }
+
+        function getAllHtmlFiles(dirPath, arrayOfFiles = []) {
+          if (!fs.existsSync(dirPath)) return arrayOfFiles;
+          const files = fs.readdirSync(dirPath);
+          files.forEach((file) => {
+            const fullPath = path.join(dirPath, file);
+            if (fs.statSync(fullPath).isDirectory()) {
+              arrayOfFiles = getAllHtmlFiles(fullPath, arrayOfFiles);
+            } else if (file.endsWith('.html')) {
+              arrayOfFiles.push(fullPath);
+            }
+          });
+          return arrayOfFiles;
+        }
+
+        try {
+          const htmlFiles = getAllHtmlFiles(OUTPUT_DIR);
+          let urlList = htmlFiles.map(filePath => {
+            let relativePath = path.relative(OUTPUT_DIR, filePath).replace(/\\/g, '/');
+            if (relativePath.endsWith('index.html')) {
+              relativePath = relativePath.slice(0, -10);
+            } else if (relativePath.endsWith('.html')) {
+              relativePath = relativePath.slice(0, -5);
+            }
+            return `https://${DOMAIN}/${relativePath}`;
+          });
+
+          // 过滤掉不必要的系统页面
+          urlList = urlList.filter(url => !url.includes('404') && !url.includes('admin'));
+
+          if (urlList.length === 0) {
+            console.log("ℹ️ 未发现有效页面，无需推送。");
+            process.exit(0);
+          }
+
+          console.log(`🚀 检测到已验证站点，正在将 ${urlList.length} 个活体 URL 发送给必应...`);
+
+          const requestData = JSON.stringify({
+            host: DOMAIN,
+            key: BING_KEY,
+            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`, // 站点已验证，此项主要用于合规传参，不影响接口判定
+            urlList: urlList
+          });
+
+          const options = {
+            hostname: 'api.indexnow.org',
+            path: '/IndexNow',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Content-Length': Buffer.byteLength(requestData)
+            }
+          };
+
+          const req = https.request(options, (res) => {
+            let body = '';
+            res.on('data', (chunk) => body += chunk);
+            res.on('end', () => {
+              if (res.statusCode === 200) {
+                console.log(`✅ 必应 IndexNow 成功接收！当前站群已被收录队列捕获。`);
+              } else {
+                console.error(`❌ 推送失败，状态码: ${res.statusCode}, 响应: ${body}`);
+              }
+            });
+          });
+
+          req.on('error', (e) => console.error(`❌ 请求必应接口失败: ${e.message}`));
+          req.write(requestData);
+          req.end();
+
+        } catch (err) {
+          console.error("❌ 自动化推送运行出错:", err);
+        }
+        EOF
+        
+        # 执行刚才生成的临时脚本
+        node bing-instant-push.js
 
     # 6. 檢查是否有新文章誕生，並自動推回 GitHub
     - name: Commit and Push Changes back to Repo
