@@ -104,92 +104,81 @@ jobs:
         echo "⏳ 正在等待线上服务器构建发布与全球 CDN 刷新缓存 (30s)..."
         sleep 30
         
-        # 🌟 终极修复：直接利用 Node.js 动态、无转义地将原生 JS 代码写入到本地，规避任何缩进与字符集冲突
+        # 🌟 终极纯原生写入：将代码拆分为纯数组，彻底避开一切长文本截断、反引号冲突及多行转义地狱 🌟
         node -e '
         const fs = require("fs");
-        const code = `
-        const fs = require("fs");
-        const path = require("path");
-        const https = require("https");
-
-        const DOMAIN = "hk-deepseek.com";
-        const BING_KEY = process.env.INDEXNOW_KEY;
-        const OUTPUT_DIR = path.join(__dirname, "_site");
-
-        function getAllHtmlFiles(dirPath, arrayOfFiles = []) {
-          if (!fs.existsSync(dirPath)) return arrayOfFiles;
-          const files = fs.readdirSync(dirPath);
-          files.forEach((file) => {
-            const fullPath = path.join(dirPath, file);
-            if (fs.statSync(fullPath).isDirectory()) {
-              arrayOfFiles = getAllHtmlFiles(fullPath, arrayOfFiles);
-            } else if (file.endsWith(".html")) {
-              arrayOfFiles.push(fullPath);
-            }
-          });
-          return arrayOfFiles;
-        }
-
-        try {
-          const htmlFiles = getAllHtmlFiles(OUTPUT_DIR);
-          let urlList = htmlFiles.map(filePath => {
-            let relativePath = path.relative(OUTPUT_DIR, filePath).replace(/\\\\/g, "/");
-            if (relativePath.endsWith("index.html")) {
-              relativePath = relativePath.slice(0, -10);
-            } else if (relativePath.endsWith(".html")) {
-              relativePath = relativePath.slice(0, -5);
-            }
-            return "https://" + DOMAIN + "/" + relativePath;
-          });
-
-          urlList = urlList.filter(url => !url.includes("404") && !url.includes("admin") && !url.endsWith(".txt"));
-
-          if (urlList.length === 0) {
-            console.log("ℹ️ 未发现有效页面，无需推送。");
-            process.exit(0);
-          }
-
-          console.log("🚀 检查到远端仓库已更新且网站已完全上线，正在将 " + urlList.length + " 个活体 URL 发送给必应...");
-
-          const requestData = JSON.stringify({
-            host: DOMAIN,
-            key: BING_KEY,
-            keyLocation: "https://" + DOMAIN + "/" + BING_KEY + ".txt",
-            urlList: urlList
-          });
-
-          const options = {
-            hostname: "api.indexnow.org",
-            path: "/IndexNow",
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json; charset=utf-8",
-              "Content-Length": Buffer.byteLength(requestData)
-            }
-          };
-
-          const req = https.request(options, (res) => {
-            let body = "";
-            res.on("data", (chunk) => body += chunk);
-            res.on("end", () => {
-              if (res.statusCode === 200 || res.statusCode === 202) {
-                console.log("✅ [完美闭环] 必应 IndexNow 成功接收！状态码: " + res.statusCode + " (100% 对暗号成功)");
-              } else {
-                console.error("❌ 推送失败，状态码: " + res.statusCode + ", 响应: " + body);
-              }
-            });
-          });
-
-          req.on("error", (e) => console.error("❌ 请求必应接口失败: " + e.message));
-          req.write(requestData);
-          req.end();
-
-        } catch (err) {
-          console.error("❌ 自动化推送运行出错:", err);
-        }
-        \`;
-        fs.writeFileSync("bing-instant-push.js", code.trim());
+        const lines = [
+          "const fs = require(\"fs\");",
+          "const path = require(\"path\");",
+          "const https = require(\"https\");",
+          "const DOMAIN = \"hk-deepseek.com\";",
+          "const BING_KEY = process.env.INDEXNOW_KEY;",
+          "const OUTPUT_DIR = path.join(__dirname, \"_site\");",
+          "function getAllHtmlFiles(dirPath, arrayOfFiles = []) {",
+          "  if (!fs.existsSync(dirPath)) return arrayOfFiles;",
+          "  const files = fs.readdirSync(dirPath);",
+          "  files.forEach((file) => {",
+          "    const fullPath = path.join(dirPath, file);",
+          "    if (fs.statSync(fullPath).isDirectory()) {",
+          "      arrayOfFiles = getAllHtmlFiles(fullPath, arrayOfFiles);",
+          "    } else if (file.endsWith(\".html\")) {",
+          "      arrayOfFiles.push(fullPath);",
+          "    }",
+          "  });",
+          "  return arrayOfFiles;",
+          "}",
+          "try {",
+          "  const htmlFiles = getAllHtmlFiles(OUTPUT_DIR);",
+          "  let urlList = htmlFiles.map(filePath => {",
+          "    let relativePath = path.relative(OUTPUT_DIR, filePath).replace(/\\\\/g, \"/\");",
+          "    if (relativePath.endsWith(\"index.html\")) {",
+          "      relativePath = relativePath.slice(0, -10);",
+          "    } else if (relativePath.endsWith(\".html\")) {",
+          "      relativePath = relativePath.slice(0, -5);",
+          "    }",
+          "    return \"https://\" + DOMAIN + \"/\" + relativePath;",
+          "  });",
+          "  urlList = urlList.filter(url => !url.includes(\"404\") && !url.includes(\"admin\") && !url.endsWith(\".txt\"));",
+          "  if (urlList.length === 0) {",
+          "    console.log(\"ℹ️ 未发现有效页面，无需推送。\");",
+          "    process.exit(0);",
+          "  }",
+          "  console.log(\"🚀 检查到远端仓库已更新且网站已完全上线，正在将 \" + urlList.length + \" 个活体 URL 发送给必应...\");",
+          "  const requestData = JSON.stringify({",
+          "    host: DOMAIN,",
+          "    key: BING_KEY,",
+          "    keyLocation: \"https://\" + DOMAIN + \"/\" + BING_KEY + \".txt\",",
+          "    urlList: urlList",
+          "  });",
+          "  const options = {",
+          "    hostname: \"api.indexnow.org\",",
+          "    path: \"/IndexNow\",",
+          "    method: \"POST\",",
+          "    headers: {",
+          "      \"Content-Type\": \"application/json; charset=utf-8\",",
+          "      \"Content-Length\": Buffer.byteLength(requestData)",
+          "    }",
+          "  };",
+          "  const req = https.request(options, (res) => {",
+          "    let body = \"\";",
+          "    res.on(\"data\", (chunk) => body += chunk);",
+          "    res.on(\"end\", () => {",
+          "      if (res.statusCode === 200 || res.statusCode === 202) {",
+          "        console.log(\"✅ [完美闭环] 必应 IndexNow 成功接收！状态码: \" + res.statusCode + \" (100% 对暗号成功)\");",
+          "      } else {",
+          "        console.error(\"❌ 推送失败，状态码: \" + res.statusCode + \", 响应: \" + body);",
+          "      }",
+          "    });",
+          "  });",
+          "  req.on(\"error\", (e) => console.error(\"❌ 请求必应接口失败: \" + e.message));",
+          "  req.write(requestData);",
+          "  req.end();",
+          "} catch (err) {",
+          "  console.error(\"❌ 自动化推送运行出错:\", err);",
+          "}"
+        ];
+        fs.writeFileSync("bing-instant-push.js", lines.join("\n"));
         '
         
-        # 执行生成的全新标准脚本
+        # 完美执行
         node bing-instant-push.js
