@@ -104,10 +104,10 @@ jobs:
         echo "⏳ 正在等待线上服务器构建发布与全球 CDN 刷新缓存 (30s)..."
         sleep 30
         
-        # 🌟 完美的对齐写法：利用 Python 动态吐出脚本，彻底规避 EOF 顶格导致的 YAML 破损
-        python3 -c '
-        import os
-        code = """
+        # 🌟 终极修复：直接利用 Node.js 动态、无转义地将原生 JS 代码写入到本地，规避任何缩进与字符集冲突
+        node -e '
+        const fs = require("fs");
+        const code = `
         const fs = require("fs");
         const path = require("path");
         const https = require("https");
@@ -139,7 +139,7 @@ jobs:
             } else if (relativePath.endsWith(".html")) {
               relativePath = relativePath.slice(0, -5);
             }
-            return `https://${DOMAIN}/\${relativePath}`;
+            return "https://" + DOMAIN + "/" + relativePath;
           });
 
           urlList = urlList.filter(url => !url.includes("404") && !url.includes("admin") && !url.endsWith(".txt"));
@@ -149,12 +149,12 @@ jobs:
             process.exit(0);
           }
 
-          console.log(`🚀 检查到远端仓库已更新且网站已完全上线，正在将 \${urlList.length} 个活体 URL 发送给必应...`);
+          console.log("🚀 检查到远端仓库已更新且网站已完全上线，正在将 " + urlList.length + " 个活体 URL 发送给必应...");
 
           const requestData = JSON.stringify({
             host: DOMAIN,
             key: BING_KEY,
-            keyLocation: `https://${DOMAIN}/\${BING_KEY}.txt`,
+            keyLocation: "https://" + DOMAIN + "/" + BING_KEY + ".txt",
             urlList: urlList
           });
 
@@ -171,26 +171,25 @@ jobs:
           const req = https.request(options, (res) => {
             let body = "";
             res.on("data", (chunk) => body += chunk);
-            res.on.apply(res, ["end", () => {
+            res.on("end", () => {
               if (res.statusCode === 200 || res.statusCode === 202) {
-                console.log(`✅ [完美闭环] 必应 IndexNow 成功接收！状态码: \${res.statusCode} (100% 对暗号成功)`);
+                console.log("✅ [完美闭环] 必应 IndexNow 成功接收！状态码: " + res.statusCode + " (100% 对暗号成功)");
               } else {
-                console.error(`❌ 推送失败，状态码: \${res.statusCode}, 响应: \${body}`);
+                console.error("❌ 推送失败，状态码: " + res.statusCode + ", 响应: " + body);
               }
-            }]);
+            });
           });
 
-          req.on("error", (e) => console.error(`❌ 请求必应接口失败: \${e.message}`));
+          req.on("error", (e) => console.error("❌ 请求必应接口失败: " + e.message));
           req.write(requestData);
           req.end();
 
         } catch (err) {
           console.error("❌ 自动化推送运行出错:", err);
         }
-        """
-        with open("bing-instant-push.js", "w") as f:
-            f.write(code.strip())
+        \`;
+        fs.writeFileSync("bing-instant-push.js", code.trim());
         '
         
-        # 完美的 8 空格对齐执行命令
+        # 执行生成的全新标准脚本
         node bing-instant-push.js
