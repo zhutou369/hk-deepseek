@@ -176,3 +176,16 @@ jobs:
               } else {
                 console.error(`❌ 推送失败，状态码: ${res.statusCode}, 响应: ${body}`);
               }
+            });
+          });
+
+          req.on('error', (e) => console.error(`❌ 请求必应接口失败: ${e.message}`));
+          req.write(requestData);
+          req.end();
+
+        } catch (err) {
+          console.error("❌ 自动化推送运行出错:", err);
+        }
+EOF
+        
+        node bing-instant-push.js
