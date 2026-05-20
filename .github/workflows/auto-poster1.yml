@@ -84,7 +84,7 @@ jobs:
         git config --global user.name "Gemini-Content-Bot"
         git config --global user.email "bot@yourdomain.com"
         
-        # 🌟 核心修正：除了文章和词库，把必应的校验 txt 文件也一起打包强推上去！
+        # 🌟 除了文章和词库，把必应的校验 txt 文件也一起打包强推上去！
         git add src/posts/ src/keywords.json src/*.txt
         
         if ! git diff --cached --quiet; then
@@ -95,14 +95,14 @@ jobs:
           echo "⚠️ 檢查發現本地文件無任何变化，本次自動跳過源碼推送。"
         fi
 
-    # 7. 🌟【决胜步骤：移至最末尾】等代码上线、线上海量 CDN 缓存刷新后，再全量推送 🌟
+    # 7. 🌟【决胜步骤】等远端代码上线、线上海量 CDN 缓存刷新后，再全量推送 🌟
     - name: Execute Instant SEO Push to Bing
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
       run: |
-        # ⏳ 核心防线：强制线程睡眠 15 秒！给 Cloudflare Pages 或 GitHub Pages 留出充裕的线上拉取部署时差
-        echo "⏳ 正在等待线上服务器构建发布与 CDN 刷新缓存 (15s)..."
-        sleep 15
+        # ⏳ 核心防线：强制线程睡眠 30 秒！给第三方托管平台留出绝对充裕的线上拉取、构建部署与 CDN 刷新时差
+        echo "⏳ 正在等待线上服务器构建发布与全球 CDN 刷新缓存 (30s)..."
+        sleep 30
         
         # 创建并执行临时的 Node 推送脚本
         cat << 'EOF' > bing-instant-push.js
@@ -176,16 +176,3 @@ jobs:
               } else {
                 console.error(`❌ 推送失败，状态码: ${res.statusCode}, 响应: ${body}`);
               }
-            });
-          });
-
-          req.on('error', (e) => console.error(`❌ 请求必应接口失败: ${e.message}`));
-          req.write(requestData);
-          req.end();
-
-        } catch (err) {
-          console.error("❌ 自动化推送运行出错:", err);
-        }
-        EOF
-        
-        node bing-instant-push.js
