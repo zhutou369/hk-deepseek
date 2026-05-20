@@ -66,12 +66,22 @@ jobs:
         chmod -R +x ./node_modules/.bin/
         npx @11ty/eleventy
 
-    # 5b. 🌟【新增核心步骤】已验证站点免文件实时推送至必应 IndexNow 🌟
+    # 5b. 🌟【新增核心步骤】动态生成物理密钥并推送至必应 IndexNow 🌟
     - name: Execute Instant SEO Push to Bing
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
       run: |
-        # 创建一个临时的 Node 推送脚本并直接执行，无需污染你的源码目录
+        # 1. 🎯 【关键修复】在编译出的静态根目录 _site 下，强行塞入必应所需要的校验文件！
+        # 这样当必应收到请求来反向检查 https://hk-deepseek.com/你的KEY.txt 时，就能无缝通过。
+        if [ -n "$INDEXNOW_KEY" ]; then
+          echo "$INDEXNOW_KEY" > ./_site/$INDEXNOW_KEY.txt
+          echo "✅ 成功在内存根目录创建必应物理校验文件: $INDEXNOW_KEY.txt"
+        else
+          echo "❌ 错误: 未能在环境中找到 INDEXNOW_KEY"
+          exit 1
+        fi
+
+        # 2. 创建并执行临时的 Node 推送脚本
         cat << 'EOF' > bing-instant-push.js
         const fs = require('fs');
         const path = require('path');
@@ -79,12 +89,7 @@ jobs:
 
         const DOMAIN = "hk-deepseek.com";
         const BING_KEY = process.env.INDEXNOW_KEY;
-        const OUTPUT_DIR = path.join(__dirname, '_site'); // 对应 11ty 的编译发布目录
-
-        if (!BING_KEY) {
-          console.error("❌ 错误: 未检测到环境变量 INDEXNOW_KEY，取消推送。");
-          process.exit(1);
-        }
+        const OUTPUT_DIR = path.join(__dirname, '_site');
 
         function getAllHtmlFiles(dirPath, arrayOfFiles = []) {
           if (!fs.existsSync(dirPath)) return arrayOfFiles;
@@ -112,20 +117,20 @@ jobs:
             return `https://${DOMAIN}/${relativePath}`;
           });
 
-          // 过滤掉不必要的系统页面
-          urlList = urlList.filter(url => !url.includes('404') && !url.includes('admin'));
+          // 过滤掉系统内部文件
+          urlList = urlList.filter(url => !url.includes('404') && !url.includes('admin') && !url.endsWith('.txt'));
 
           if (urlList.length === 0) {
             console.log("ℹ️ 未发现有效页面，无需推送。");
             process.exit(0);
           }
 
-          console.log(`🚀 检测到已验证站点，正在将 ${urlList.length} 个活体 URL 发送给必应...`);
+          console.log(`🚀 正在将 ${urlList.length} 个活体 URL 发送给必应...`);
 
           const requestData = JSON.stringify({
             host: DOMAIN,
             key: BING_KEY,
-            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`,
+            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`, // 指向刚才物理生成的 txt 地址
             urlList: urlList
           });
 
@@ -143,7 +148,6 @@ jobs:
             let body = '';
             res.on('data', (chunk) => body += chunk);
             res.on('end', () => {
-              // 🌟 修复判定逻辑：200 和 202 都代表必应成功接收
               if (res.statusCode === 200 || res.statusCode === 202) {
                 console.log(`✅ 必应 IndexNow 成功接收！状态码: ${res.statusCode} (已成功送达必应抓取队列)`);
               } else {
@@ -161,7 +165,6 @@ jobs:
         }
         EOF
         
-        # 执行刚才生成的临时脚本
         node bing-instant-push.js
 
     # 6. 檢查是否有新文章誕生，並自動推回 GitHub
@@ -182,5 +185,5 @@ jobs:
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main -f
           echo "✅ 成功將新文章與更新後的詞庫同步回 GitHub 倉庫！"
         else
-          echo "⚠️ 檢查發現本地文件無任何变化，本次自動跳過推送。"
+          echo "⚠️ 檢查發現本地文件無任何変化，本次自動跳過推送。"
         fi
