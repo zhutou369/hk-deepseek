@@ -76,7 +76,7 @@ jobs:
           echo "✅ 成功在内存源码与发布目录创建必应物理校验文件"
         fi
 
-    # 6. 🌟【位置提前】檢查是否有新文章和驗證文件誕生，第一時間暴力推回 GitHub 主網
+    # 6. 檢查是否有新文章和驗證文件誕生，第一時間暴力推回 GitHub 主網
     - name: Commit and Push Changes back to Repo
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,15 +104,17 @@ jobs:
         echo "⏳ 正在等待线上服务器构建发布与全球 CDN 刷新缓存 (30s)..."
         sleep 30
         
-        # 创建并执行临时的 Node 推送脚本
-        cat << 'EOF' > bing-instant-push.js
-        const fs = require('fs');
-        const path = require('path');
-        const https = require('https');
+        # 🌟 完美的对齐写法：利用 Python 动态吐出脚本，彻底规避 EOF 顶格导致的 YAML 破损
+        python3 -c '
+        import os
+        code = """
+        const fs = require("fs");
+        const path = require("path");
+        const https = require("https");
 
         const DOMAIN = "hk-deepseek.com";
         const BING_KEY = process.env.INDEXNOW_KEY;
-        const OUTPUT_DIR = path.join(__dirname, '_site');
+        const OUTPUT_DIR = path.join(__dirname, "_site");
 
         function getAllHtmlFiles(dirPath, arrayOfFiles = []) {
           if (!fs.existsSync(dirPath)) return arrayOfFiles;
@@ -121,7 +123,7 @@ jobs:
             const fullPath = path.join(dirPath, file);
             if (fs.statSync(fullPath).isDirectory()) {
               arrayOfFiles = getAllHtmlFiles(fullPath, arrayOfFiles);
-            } else if (file.endsWith('.html')) {
+            } else if (file.endsWith(".html")) {
               arrayOfFiles.push(fullPath);
             }
           });
@@ -131,61 +133,64 @@ jobs:
         try {
           const htmlFiles = getAllHtmlFiles(OUTPUT_DIR);
           let urlList = htmlFiles.map(filePath => {
-            let relativePath = path.relative(OUTPUT_DIR, filePath).replace(/\\/g, '/');
-            if (relativePath.endsWith('index.html')) {
+            let relativePath = path.relative(OUTPUT_DIR, filePath).replace(/\\\\/g, "/");
+            if (relativePath.endsWith("index.html")) {
               relativePath = relativePath.slice(0, -10);
-            } else if (relativePath.endsWith('.html')) {
+            } else if (relativePath.endsWith(".html")) {
               relativePath = relativePath.slice(0, -5);
             }
-            return `https://${DOMAIN}/${relativePath}`;
+            return `https://${DOMAIN}/\${relativePath}`;
           });
 
-          // 过滤掉系统内部页面
-          urlList = urlList.filter(url => !url.includes('404') && !url.includes('admin') && !url.endsWith('.txt'));
+          urlList = urlList.filter(url => !url.includes("404") && !url.includes("admin") && !url.endsWith(".txt"));
 
           if (urlList.length === 0) {
             console.log("ℹ️ 未发现有效页面，无需推送。");
             process.exit(0);
           }
 
-          console.log(`🚀 检查到远端仓库已更新且网站已完全上线，正在将 ${urlList.length} 个活体 URL 发送给必应...`);
+          console.log(`🚀 检查到远端仓库已更新且网站已完全上线，正在将 \${urlList.length} 个活体 URL 发送给必应...`);
 
           const requestData = JSON.stringify({
             host: DOMAIN,
             key: BING_KEY,
-            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`, // 此时该线上路径已可以通过互联网访问
+            keyLocation: `https://${DOMAIN}/\${BING_KEY}.txt`,
             urlList: urlList
           });
 
           const options = {
-            hostname: 'api.indexnow.org',
-            path: '/IndexNow',
-            method: 'POST',
+            hostname: "api.indexnow.org",
+            path: "/IndexNow",
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json; charset=utf-8',
-              'Content-Length': Buffer.byteLength(requestData)
+              "Content-Type": "application/json; charset=utf-8",
+              "Content-Length": Buffer.byteLength(requestData)
             }
           };
 
           const req = https.request(options, (res) => {
-            let body = '';
-            res.on('data', (chunk) => body += chunk);
-            res.on('end', () => {
+            let body = "";
+            res.on("data", (chunk) => body += chunk);
+            res.on.apply(res, ["end", () => {
               if (res.statusCode === 200 || res.statusCode === 202) {
-                console.log(`✅ [完美闭环] 必应 IndexNow 成功接收！状态码: ${res.statusCode} (100% 对暗号成功，已入蜘蛛抓取序列)`);
+                console.log(`✅ [完美闭环] 必应 IndexNow 成功接收！状态码: \${res.statusCode} (100% 对暗号成功)`);
               } else {
-                console.error(`❌ 推送失败，状态码: ${res.statusCode}, 响应: ${body}`);
+                console.error(`❌ 推送失败，状态码: \${res.statusCode}, 响应: \${body}`);
               }
-            });
+            }]);
           });
 
-          req.on('error', (e) => console.error(`❌ 请求必应接口失败: ${e.message}`));
+          req.on("error", (e) => console.error(`❌ 请求必应接口失败: \${e.message}`));
           req.write(requestData);
           req.end();
 
         } catch (err) {
           console.error("❌ 自动化推送运行出错:", err);
         }
-EOF
+        """
+        with open("bing-instant-push.js", "w") as f:
+            f.write(code.strip())
+        '
         
+        # 完美的 8 空格对齐执行命令
         node bing-instant-push.js
