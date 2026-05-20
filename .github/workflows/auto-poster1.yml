@@ -125,7 +125,7 @@ jobs:
           const requestData = JSON.stringify({
             host: DOMAIN,
             key: BING_KEY,
-            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`, // 站点已验证，此项主要用于合规传参，不影响接口判定
+            keyLocation: `https://${DOMAIN}/${BING_KEY}.txt`,
             urlList: urlList
           });
 
@@ -143,8 +143,9 @@ jobs:
             let body = '';
             res.on('data', (chunk) => body += chunk);
             res.on('end', () => {
-              if (res.statusCode === 200) {
-                console.log(`✅ 必应 IndexNow 成功接收！当前站群已被收录队列捕获。`);
+              // 🌟 修复判定逻辑：200 和 202 都代表必应成功接收
+              if (res.statusCode === 200 || res.statusCode === 202) {
+                console.log(`✅ 必应 IndexNow 成功接收！状态码: ${res.statusCode} (已成功送达必应抓取队列)`);
               } else {
                 console.error(`❌ 推送失败，状态码: ${res.statusCode}, 响应: ${body}`);
               }
