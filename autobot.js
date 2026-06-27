@@ -2,6 +2,173 @@ const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const path = require('path');
 
+const SYSTEM_TAGS = new Set(['posts']);
+const TAG_POOL = [
+    'DeepSeek教學',
+    'API整合',
+    '私有化部署',
+    '提示詞優化',
+    'RAG實戰',
+    '自動化工作流',
+    '本地模型',
+    'AI客服',
+    '數據安全',
+    'SEO優化',
+    '香港中小企',
+    '開源模型',
+    'vLLM',
+    'Ollama',
+    'Gemini工作流'
+];
+const FORBIDDEN_PHRASES = [
+    '綜上所述',
+    '综上所述',
+    '毋庸置疑',
+    '在當今數字化時代',
+    '在当今数字化时代',
+    '業界領先',
+    '业界领先',
+    '全方位',
+    '深度融合',
+    '極致',
+    '极致'
+];
+
+function pickDynamicTags(topic, todayStr, randomId) {
+    const seedText = `${topic}-${todayStr}-${randomId}`;
+    let seed = 0;
+    for (const char of seedText) seed += char.charCodeAt(0);
+
+    const shuffled = [...TAG_POOL].sort((a, b) => {
+        const scoreA = (seed + a.charCodeAt(0) + a.length * 17) % 97;
+        const scoreB = (seed + b.charCodeAt(0) + b.length * 17) % 97;
+        return scoreA - scoreB;
+    });
+
+    return ['posts', ...shuffled.slice(0, 4)];
+}
+
+function stripCodeFence(text) {
+    return String(text || '')
+        .trim()
+        .replace(/^```(?:json|markdown)?\s*/i, '')
+        .replace(/\s*```$/i, '')
+        .trim();
+}
+
+function parseJsonResponse(text) {
+    const clean = stripCodeFence(text);
+    try {
+        return JSON.parse(clean);
+    } catch (error) {
+        const match = clean.match(/\{[\s\S]*\}/);
+        if (!match) throw error;
+        return JSON.parse(match[0]);
+    }
+}
+
+function slugify(value, fallback) {
+    const slug = String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    return slug || fallback;
+}
+
+function yamlEscape(value) {
+    return String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, ' ');
+}
+
+function removeForbiddenPhrases(value) {
+    let output = String(value || '');
+    for (const phrase of FORBIDDEN_PHRASES) {
+        output = output.split(phrase).join('');
+    }
+    output = output.replace(/^隨著[^。\n]{0,40}(?:快速)?發展[，,。]\s*/i, '');
+    output = output.replace(/^随着[^。\n]{0,40}(?:快速)?发展[，,。]\s*/i, '');
+    output = output.replace(/^在當今[^。\n]{0,60}[，,。]\s*/i, '');
+    output = output.replace(/^在当今[^。\n]{0,60}[，,。]\s*/i, '');
+    return output.trim();
+}
+
+function normalizeArticle(article, currentTopic, todayStr, randomId, dynamicTags) {
+    const safeArticle = article && typeof article === 'object' ? article : {};
+    const title = removeForbiddenPhrases(safeArticle.title || currentTopic);
+    const description = removeForbiddenPhrases(
+        safeArticle.description || `圍繞${currentTopic}整理一篇偏實操的 DeepSeek 技術筆記。`
+    );
+    const slug = slugify(safeArticle.slug, `deepseek-${randomId}`);
+    const aiTags = Array.isArray(safeArticle.tags) ? safeArticle.tags : [];
+    const tags = [...new Set([...dynamicTags, ...aiTags])]
+        .map(tag => String(tag || '').trim())
+        .filter(Boolean)
+        .filter(tag => tag.length <= 30)
+        .slice(0, 7);
+    const body = removeForbiddenPhrases(safeArticle.body || '');
+
+    return {
+        title,
+        description,
+        slug,
+        tags: tags.length ? tags : ['posts'],
+        body
+    };
+}
+
+function buildMarkdown(article, todayStr, randomId) {
+    const permalink = `/posts/${todayStr}-${article.slug}-${randomId}/index.html`;
+    const tags = JSON.stringify(article.tags);
+
+    return `---
+title: "${yamlEscape(article.title)}"
+description: "${yamlEscape(article.description)}"
+date: ${todayStr}
+generated: true
+tags: ${tags}
+layout: "layouts/post.njk"
+permalink: "${permalink}"
+---
+
+${article.body}
+`;
+}
+
+async function generateWithRetry(ai, contents, logLabel) {
+    let response;
+    let retryCount = 0;
+    const maxRetries = 3;
+    const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+    while (retryCount < maxRetries) {
+        try {
+            console.log(`${logLabel} (嘗試第 ${retryCount + 1} 次)`);
+            response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents,
+            });
+
+            if (response && response.text) return response.text;
+            throw new Error('Gemini 返回內容為空');
+        } catch (error) {
+            retryCount++;
+            const errMsg = String(error.message || '').toLowerCase();
+            if ((errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('429')) && retryCount < maxRetries) {
+                console.warn('⚠️ Google 服務器正值流量高峰 (503/429)。原地等待 5 秒後自動重試...');
+                await delay(5000);
+            } else if (retryCount >= maxRetries) {
+                throw error;
+            } else {
+                throw error;
+            }
+        }
+    }
+
+    throw new Error('Gemini API 重試後仍未返回內容');
+}
+
 async function runAutoBot() {
     // 1. 檢查環境變量中是否存在金鑰
     const apiKey = process.env.GEMINI_API_KEY;
@@ -107,75 +274,66 @@ async function runAutoBot() {
             `;
         }
 
-        // 7. 構造終極 香港本地化 SEO Prompt 模板
+        const dynamicTags = pickDynamicTags(currentTopic, todayStr, randomId);
+        const visibleTags = dynamicTags.filter(tag => !SYSTEM_TAGS.has(tag)).join('、');
+
+        // 7. 構造香港本地化 SEO Prompt 模板，首輪只輸出 JSON，方便二次潤色與程序校驗
         const prompt = `
-    你是一個精通技術 SEO、網絡安全以及大模型基礎設施的香港本地權威科技博主。請針對主題 "${currentTopic}" 撰寫一篇深入、對用戶有極高價值、且全面使用【香港繁體中文】（zh-HK）的技術原創文章。
+    你是某技術博客的兼職作者，給普通用戶寫實操帖，不是寫白皮書。請針對主題 "${currentTopic}" 撰寫一篇使用【香港繁體中文】（zh-HK）的 DeepSeek 技術原創文章。
     
     【重要核心要求】：
-    1. 請將本次的主題 "${currentTopic}" 翻譯為一個乾淨、地道、用連字符隔開的【純英文短語】，作為 URL 的別名（Slug）。
-    2. 字数嚴格控制在 1200 - 2000 字之間。多用結構化列表、二級標題（##）、三級標題（###）。
-    3. 全篇文本（包含標題 and 描述）必須使用正宗的香港繁體字，多使用本地常用詞（如：教學、優化、中小企、數字轉型、網絡、顯示卡）。
-    4. 嚴格按以下 Markdown 格式輸出頭部元數據，禁止在最外層包含 \`\`\`markdown 包裹外殼，必须直接以 --- 開頭：
-
-    ---
-    title: "${currentTopic}"
-    description: "針對${currentTopic}的專業技術解析與香港本地化實操指南。"
-    date: ${todayStr}
-    tags: ["posts"]
-    layout: "layouts/post.njk"
-    permalink: "/posts/${todayStr}-你的純英文短語-${randomId}/index.html"
-    ---
-
-    【注意】：請務必將上面 permalink 裡面的 "你的純英文短語" 换為你真正翻譯出來的英文 Slug。不要保留任何多餘的引號或括號。
+    1. 標題像博客標題，不要「XXX技術白皮書」「XXX完整指南」這種官腔。
+    2. 正文字數控制在 800 - 1500 字之間，段落長短錯落，不要每段都 3-4 句。
+    3. 正文必須包含：①一個具體版本號或日期 ②至少 3 步操作步驟 ③一個「常見問題」小節。
+    4. 至少一段用第一人稱，例如「我測試時發現…」「上週升級後…」。
+    5. 禁止用詞：綜上所述、毋庸置疑、在當今數字化時代、業界領先、全方位、深度融合、極致、官方、站群、SEO 霸屏、友鏈機器人。
+    6. 刪掉「在當今」「隨著…的快速發展」這類開頭。
+    7. 隨機選一種結構：
+       A. 教程型（步驟+截圖描述）
+       B. 評測型（3個維度打分+表格感描述）
+       C. 問答型（5個FAQ）
+       D. 快訊型（短，300-600字）
+    8. 用「## 目錄」做大欄目，Tags 由站點聚合頁負責，不要在正文末尾硬塞標籤。
+    9. 全篇保留可執行的技術信息，多用本地常用詞（如：教學、優化、中小企、網絡、顯示卡）。
+    10. 請將主題翻譯為乾淨、地道、用連字符隔開的純英文 slug。
+    11. 建議 Front Matter Tags：${visibleTags}。
     ${imagePromptInstruction}
 
-    這裡開始寫文章正文。請多用二級標題（##）、三級標題（###）對內容進行多層級切分，保證極佳的 SEO 可讀性與結構性。
+    嚴格只輸出 JSON，不要使用 Markdown 代碼框，不要輸出 YAML。JSON 結構必須是：
+    {
+      "title": "文章標題",
+      "description": "120字以內摘要",
+      "slug": "english-url-slug",
+      "tags": ["posts", "標籤1", "標籤2"],
+      "body": "Markdown 正文，不包含 Front Matter，不包含 H1 標題"
+    }
         `;
 
-        // 智能抗併發自動重試機制
-        let response;
-        let retryCount = 0;
-        const maxRetries = 3;
-        const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
-        while (retryCount < maxRetries) {
-            try {
-                console.log(`正在連接 Gemini API 生產高質量繁體內容... (嘗試第 ${retryCount + 1} 次)`);
-                
-                response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: prompt,
-                });
-
-                if (response && response.text) {
-                    console.log("🎉 Gemini API 響應成功！已順利拿到繁體正文。");
-                    break; 
-                } else {
-                    throw new Error("Gemini 返回內容為空");
-                }
-            } catch (error) {
-                retryCount++;
-                const errMsg = error.message.toLowerCase();
-                if (errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('429')) {
-                    if (retryCount < maxRetries) {
-                        console.warn(`⚠️ Google 服務器正值流量高峰 (503/429)。原地等待 5 秒後自動重試...`);
-                        await delay(5000); 
-                    }
-                } else {
-                    throw error;
-                }
-            }
-        }
-
-        if (!response || !response.text) {
-            console.error(`❌ 連續重試 ${maxRetries} 次後 Gemini API 依然處於高載狀態，將本期選題塞回詞庫，跳過本篇。`);
-            keywords.unshift(currentTopic);
-            continue; 
-        }
-
         try {
-            let articleContent = response.text;
-            articleContent = articleContent.replace(/permalink:\s*["']?\/posts\/([^"'\n]+)["']?/g, 'permalink: "/posts/$1"');
+            const firstPassText = await generateWithRetry(ai, prompt, '正在連接 Gemini API 生成首輪 JSON 文章...');
+            const firstPassArticle = normalizeArticle(parseJsonResponse(firstPassText), currentTopic, todayStr, randomId, dynamicTags);
+            console.log('🎉 首輪 JSON 文章生成成功，開始二次潤色。');
+
+            const polishPrompt = `
+    把下面文章改寫成貼吧/知乎網友風格：縮短 20% 官話，加 1-2 處自然口語，保留所有技術信息，輸出同樣 JSON。
+    【角色】你是某技術博客的兼職作者，給普通用戶寫實操帖，不是寫白皮書。
+    【硬性要求】
+    - 標題像博客標題，不要「XXX技術白皮書」「XXX完整指南」這種官腔。
+    - 正文必須包含：①一個具體版本號或日期 ②至少 3 步操作步驟 ③一個「常見問題」小節。
+    - 至少一段用第一人稱（「我測試時發現…」「上週升級後…」）。
+    - 禁止用詞：綜上所述、毋庸置疑、在當今數字化時代、業界領先、全方位、深度融合、極致、官方、站群、SEO 霸屏、友鏈機器人、全攻略、狂降。
+    - 刪掉「在當今」「隨著…的快速發展」開頭。
+    - 隨機替換部分連接詞，不要通篇都是「此外」「因此」「同時」。
+    - 長度 800-1500 字，段落長短錯落，用「## 目錄」做大欄目。
+    - 保留 JSON 字段：title、description、slug、tags、body；不要輸出代碼框。
+
+    待潤色 JSON：
+    ${JSON.stringify(firstPassArticle, null, 2)}
+            `;
+
+            const polishedText = await generateWithRetry(ai, polishPrompt, '正在執行二次潤色短 Prompt...');
+            const polishedArticle = normalizeArticle(parseJsonResponse(polishedText), currentTopic, todayStr, randomId, dynamicTags);
+            const articleContent = buildMarkdown(polishedArticle, todayStr, randomId);
 
             const fileName = `${todayStr}-post-${randomId}-${currentLoop}.md`;
             const outputDir = path.join(__dirname, 'src', 'posts'); 

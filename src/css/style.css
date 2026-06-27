@@ -5,6 +5,10 @@
   --text-light: #4a5568;       /* 煙燻中灰 */
   --bg-light: #f7fafc;         /* 極客淺灰 */
   --border-color: #e2e8f0;     /* 細膩線條 */
+  --primary: #06b6d4;
+  --bg-dark: #0f172a;
+  --border: #e2e8f0;
+  --text-main: #334155;
 }
 
 *, *::before, *::after {

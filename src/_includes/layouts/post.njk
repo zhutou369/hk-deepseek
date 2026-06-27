@@ -1,49 +1,82 @@
 ---
 layout: layouts/base.njk
 ---
-<article class="post-content-wrapper">
-  <header class="post-content-header">
-    <h1>{{ title }}</h1>
-    <div class="post-content-meta">
-      <span>發布日期：{{ date | dateFilter }}</span> [cite: 12]
-      <span>分類：DeepSeek 核心技術專題</span>
-      <span>讀者對象：香港開發者及企業決策層</span>
-    </div>
-  </header>
 
-  <section class="post-body-markdown">
-    {{ content | safe }} 
-  </section>
-  
-  <div class="post-pagination-nav" style="margin: 40px 0 20px 0; padding: 20px; background: #f9f9f9; border-radius: 6px; border-left: 4px solid #333;">
-    <ul style="list-style: none; padding: 0; margin: 0; line-height: 2;">
-      {%- set previousPost = collections.posts | getPreviousCollectionItem(page) %}
-      {%- set nextPost = collections.posts | getNextCollectionItem(page) %}
+<div class="container" style="padding: 60px 0;">
+  <article>
+    <header style="margin-bottom: 50px; text-align: center;">
+      <h1 style="font-size: 42px; line-height: 1.2; color: var(--bg-dark); margin: 0 0 20px;">{{ title }}</h1>
+      <div style="color:#94a3b8; font-size:14px;">
+        發布時間：{{ date | dateFilter }}{% if updated %} · 更新於 {{ updated | dateFilter }}{% endif %}
+        · {{ site.brand }}
+      </div>
+      {% if tags and tags.length > 1 %}
+        <div class="post-tag-list" style="justify-content:center; margin-top:12px;">
+          {% for tag in tags %}
+            {% if tag != "posts" %}
+              <a href="/tags/{{ tag | tagSlug }}/" style="margin:0 6px; color:var(--primary); text-decoration:none; font-size:13px;">{{ tag }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </header>
 
-      <li><strong>&larr; 上一篇：</strong>
-        {% if previousPost %}
-          <a href="{{ previousPost.url }}" style="color: #0066cc; text-decoration: none;">{{ previousPost.data.title }}</a>
-        {% else %}
-          <span style="color: #999;">已經是最新一篇技術文章了</span>
+    <section class="post-body" style="font-size: 17px; color: #334155; line-height: 1.8; max-width: 800px; margin: 0 auto;">
+      {{ content | safe }}
+    </section>
+
+    <div style="max-width: 800px; margin: 80px auto 40px; display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 30px;">
+      {% set prevPost = collections.indexablePosts | getPreviousCollectionItem(page) %}
+      {% set nextPost = collections.indexablePosts | getNextCollectionItem(page) %}
+      <div style="width:45%;">
+        {% if prevPost %}
+          <div style="font-size:12px; color:#94a3b8; margin-bottom:5px;">上一篇</div>
+          <a href="{{ prevPost.url }}" style="text-decoration:none; color:var(--bg-dark); font-weight:600;">{{ prevPost.data.title }}</a>
         {% endif %}
-      </li>
-      <li><strong>&rarr; 下一篇：</strong>
+      </div>
+      <div style="width:45%; text-align:right;">
         {% if nextPost %}
-          <a href="{{ nextPost.url }}" style="color: #0066cc; text-decoration: none;">{{ nextPost.data.title }}</a>
-        {% else %}
-          <span style="color: #999;">敬請期待下一期技術專題更新</span>
+          <div style="font-size:12px; color:#94a3b8; margin-bottom:5px;">下一篇</div>
+          <a href="{{ nextPost.url }}" style="text-decoration:none; color:var(--bg-dark); font-weight:600;">{{ nextPost.data.title }}</a>
         {% endif %}
-      </li>
-    </ul>
-  </div>
-
-  <footer class="post-content-footer">
-    <div class="inner-navigation">
-      <p><strong>站內導航閉環：</strong></p>
-      <ul>
-        <li>返回 <a href="/">DeepSeek 香港情報站首頁</a> 獲取每日最新動態。</li>
-        <li>前往 <a href="/posts/">技術文章檔案庫</a> 檢索更多 AI 落地實踐。</li>
-      </ul>
+      </div>
     </div>
-  </footer>
-</article>
+
+    <div style="max-width: 800px; margin: 40px auto; background: #f8fafc; padding: 40px; border-radius: 16px;">
+      <h3 style="margin-top:0; font-size:18px;">最新教程</h3>
+      <ul style="list-style:none; padding:0; margin:20px 0 0; display: grid; gap: 15px;">
+        {% for item in collections.indexablePosts | limit(5) %}
+          <li><a href="{{ item.url }}" style="text-decoration:none; color:var(--text-main); font-size:15px; border-bottom:1px solid #e2e8f0; display:block; padding-bottom:10px;">{{ item.data.title }}</a></li>
+        {% endfor %}
+      </ul>
+      <div style="margin-top:20px; text-align:right;">
+        <a href="/posts/" style="color:var(--primary); text-decoration:none; font-size:14px; font-weight:700;">查看全部文章 &raquo;</a>
+      </div>
+    </div>
+  </article>
+</div>
+
+<script type="application/ld+json">
+{{ {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": description,
+  "datePublished": date | htmlDate,
+  "dateModified": (updated | htmlDate) if updated else (date | htmlDate),
+  "author": { "@type": "Organization", "name": site.brand },
+  "publisher": { "@type": "Organization", "name": site.brand, "url": site.url },
+  "mainEntityOfPage": site.url + page.url
+} | dump | safe }}
+</script>
+<script type="application/ld+json">
+{{ {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "首頁", "item": site.url + "/" },
+    { "@type": "ListItem", "position": 2, "name": "技術文章", "item": site.url + "/posts/" },
+    { "@type": "ListItem", "position": 3, "name": title, "item": site.url + page.url }
+  ]
+} | dump | safe }}
+</script>

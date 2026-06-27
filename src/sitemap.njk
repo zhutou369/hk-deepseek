@@ -1,0 +1,25 @@
+---
+permalink: /sitemap.xml
+eleventyExcludeFromCollections: true
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{{ site.url }}/</loc>
+    {% if collections.indexablePosts.length %}
+    <lastmod>{{ collections.indexablePosts[0].date | htmlDate }}</lastmod>
+    {% endif %}
+  </url>
+  <url>
+    <loc>{{ site.url }}/posts/</loc>
+    {% if collections.indexablePosts.length %}
+    <lastmod>{{ collections.indexablePosts[0].date | htmlDate }}</lastmod>
+    {% endif %}
+  </url>
+{% for post in collections.indexablePosts %}
+  <url>
+    <loc>{{ site.url }}{{ post.url }}</loc>
+    <lastmod>{{ post.date | htmlDate }}</lastmod>
+  </url>
+{% endfor %}
+</urlset>

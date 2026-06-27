@@ -2,23 +2,19 @@ backend:
   name: github
   repo: zhutou369/hk-deepseek
   branch: main
-  # 🌟 鎖死你成功跑通的 Cloudflare Worker 認證網關
-  base_url: https://young-tree-51fd.zhutou757.workers.dev
-  # 🌟 核心修正：補齊標準的斜槓授權路由
+  base_url: https://shrill-king-461b.zhutou757.workers.dev
   auth_endpoint: /auth
 
-# 媒體庫配置（精準存入 src 開發源目錄，防止 11ty 編譯時丟失圖片）
 media_folder: "src/static/assets/img"
 public_folder: "/static/assets/img"
 
-# 基礎配置
 display_type: list
 show_preview_links: false
 
 collections:
   - name: "posts"
     label: "文章發布"
-    folder: "src/posts" # 🌟 核心修正：後台手動發文時，新 md 必須精準寫入 src/posts
+    folder: "src/posts"
     create: true
     slug: "{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}-{{slug}}"
     fields:
@@ -26,7 +22,5 @@ collections:
       - {label: "SEO 頁面描述", name: "description", widget: "string"}
       - {label: "發布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD HH:mm:ss"}
       - {label: "正文內容", name: "body", widget: "markdown"}
-      # 🌟 核心對齊：tags 必須是 ["posts"]，才能進入 11ty 的 collections.posts 循環體
       - {label: "標籤", name: "tags", widget: "hidden", default: ["posts"]}
-      # 🌟 核心對齊：layout 必須是 layouts/post.njk，完美套用我們新做的詳情頁模板
       - {label: "布局", name: "layout", widget: "hidden", default: "layouts/post.njk"}

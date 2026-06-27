@@ -3,59 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }} | DeepSeek 香港非官方中文情報站</title>
-  <meta name="description" content="{{ description }}">
-  <meta name="keywords" content="DeepSeek, DeepSeek香港, DeepSeek中文, AI大模型, 深度求索, DeepSeek教學, DeepSeek企業應用">
-  
-  <meta property="og:title" content="{{ title }} | DeepSeek 香港非官方中文情報站">
-  <meta property="og:description" content="{{ description }}">
-  <meta property="og:type" content="{{ 'article' if layout == 'layouts/post.njk' else 'website' }}">
-  <meta property="og:locale" content="zh_HK">
-  
+  <meta name="baidu-site-verification" content="codeva-1zDnTk8YZ4">
+  {% set docTitle = title or site.title %}
+  {% set metaDescription = description or site.description %}
+  {% set canonicalPath = canonicalUrl or page.url or "/" %}
+  {% set canonical = site.url + canonicalPath %}
+  <title>{% if page.url != "/" %}{{ docTitle }} | {{ site.brand }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="description" content="{{ metaDescription }}">
+  <meta name="keywords" content="{{ pageKeywords or site.keywords }}">
+  {% if noindex %}
+  <meta name="robots" content="noindex,follow">
+  {% else %}
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  {% endif %}
+  <link rel="canonical" href="{{ canonical }}">
+  <meta property="og:type" content="{% if layout == 'layouts/post.njk' %}article{% else %}website{% endif %}">
+  <meta property="og:title" content="{{ docTitle }}">
+  <meta property="og:description" content="{{ metaDescription }}">
+  <meta property="og:url" content="{{ canonical }}">
+  <meta property="og:site_name" content="{{ site.brand }}">
+  <meta property="og:locale" content="{{ site.locale }}">
+  <meta name="twitter:card" content="summary">
+  <script type="application/ld+json">
+{{ {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": site.brand,
+  "url": site.url,
+  "description": site.description
+} | dump | safe }}
+  </script>
   <link rel="stylesheet" href="/css/style.css">
-  
-  <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
-  <script>LA.init({id:"3K7l95Zodr0uFrIN",ck:"3K7l95Zodr0uFrIN"})</script>
+  <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js" defer></script>
+  <script>window.addEventListener("load",function(){if(window.LA){LA.init({id:"{{ site.laId }}",ck:"{{ site.laId }}"})}})</script>
 </head>
 <body>
-
   <header class="site-header">
-    <div class="container header-flex">
+    <div class="container header-nav">
       {% if page.url == "/" %}
-        <h1 class="logo"><a href="/">DeepSeek 香港情報站</a></h1>
+        <h1 class="logo" style="margin:0;"><a href="/">{{ site.brand }}</a></h1>
       {% else %}
-        <div class="logo"><a href="/">DeepSeek 香港情報站</a></div>
+        <div class="logo"><a href="/">{{ site.brand }}</a></div>
       {% endif %}
-      <nav class="site-nav">
-        <ul>
+      <nav>
+        <ul class="nav-links">
           <li><a href="/" {% if page.url == "/" %}class="active"{% endif %}>首頁</a></li>
-          <li><a href="/posts/" {% if page.url == "/posts/" %}class="active"{% endif %}>最新文章</a></li>
+          <li><a href="/posts/" {% if page.url.startsWith('/posts/') %}class="active"{% endif %}>技術文章</a></li>
         </ul>
       </nav>
     </div>
   </header>
-
-  <main class="site-main container">
-    {{ content | safe }}
-  </main>
-
+  <main>{{ content | safe }}</main>
   <footer class="site-footer">
     <div class="container">
-      <div class="friend-links">
-        <h3>友情鏈接：</h3>
-        <ul>
-          <li><a href="https://deepseek-chat.com" target="_blank" rel="noopener" title="DeepSeek 線上聊天智能對話">DeepSeek 線上智能對話</a></li>
-          <li><a href="https://hk-deepseek.com" target="_blank" rel="noopener" title="DeepSeek 香港繁體技術社區">DeepSeek 香港技術社區</a></li>
-          <li><a href="https://deepseek-in.com" target="_blank" rel="noopener" title="DeepSeek 全球產業應用整合">DeepSeek 產業應用網</a></li>
-          <li><a href="https://deepseek-1.com" target="_blank" rel="noopener" title="DeepSeek 第一中文繁體教學門戶">DeepSeek 中文教學門戶</a></li>
-          <li><a href="https://deepseek-my.com" target="_blank" rel="noopener" title="DeepSeek 個人自動化高效方案">DeepSeek 高效方案中心</a></li>
-        </ul>
+      <div class="friend-section">
+        <h4>相關 DeepSeek 資料站</h4>
+        <div class="friend-grid">
+          <a href="https://deepseek-chat.com" target="_blank" rel="noopener">DeepSeek 對話入口整理</a>
+          <a href="https://deepseek-in.com" target="_blank" rel="noopener">DeepSeek 產業應用資料</a>
+          <a href="https://deepseek-1.com" target="_blank" rel="noopener">DeepSeek 技術文章</a>
+          <a href="https://deepseek-my.com" target="_blank" rel="noopener">DeepSeek 馬來西亞資料</a>
+        </div>
       </div>
-      <div class="copyright">
-        <p>&copy; 2026 DeepSeek 香港非官方中文情報站。版權所有。本站內容專為香港及全球繁體用戶優化。</p>
+      <div class="copy">
+        <p>&copy; 2026 {{ site.brand }} · 本站為第三方使用說明與技術整理，非 DeepSeek 官方網站。</p>
       </div>
     </div>
   </footer>
-
 </body>
 </html>

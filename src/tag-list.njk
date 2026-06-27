@@ -1,0 +1,22 @@
+---
+layout: layouts/base.njk
+title: Tags 聚合頁 | {{ site.brand }}
+description: 按 Tags 瀏覽 {{ site.brand }} 的實操文章與教程。
+permalink: "/tags/index.html"
+---
+
+<header class="archive-header">
+  <h2>Tags 聚合頁</h2>
+  <p>按主題查找本站文章。系統內置標籤已被過濾，這裏只保留內容分類用的業務 Tags。</p>
+</header>
+
+<div class="tag-cloud">
+  {% for tag in collections.tagList %}
+    {% set tagPosts = collections.posts | postsByTag(tag) %}
+    <a href="/tags/{{ tag | tagSlug }}/">
+      {{ tag }} <span>{{ tagPosts.length }}</span>
+    </a>
+  {% else %}
+    <p>暫時未生成可用 Tags，等自動發文跑完後會更新。</p>
+  {% endfor %}
+</div>

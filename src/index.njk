@@ -1,0 +1,96 @@
+---
+layout: layouts/base.njk
+title: DeepSeek 香港：登入、API 與本地部署指南
+description: 整理 DeepSeek 網頁版登入、API 密鑰申請、提示詞技巧、503/429 錯誤排查、本地部署與企業整合的香港繁體中文實操說明。
+pageKeywords: DeepSeek香港,DeepSeek 登入,DeepSeek API,DeepSeek 提示詞,深度求索
+---
+
+<style>
+  .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; padding: 80px 0; text-align: center; }
+  .hero p { font-size: 18px; color: #94a3b8; max-width: 760px; margin: 20px auto; line-height: 1.7; }
+  .hero h2 { font-size: 42px; margin: 0; }
+  .matrix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: -40px 0 60px; }
+  .matrix-item { background: #fff; border: 1px solid var(--border); padding: 28px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+  .matrix-item h3 { color: var(--bg-dark); margin: 0 0 10px; font-size: 18px; }
+  .matrix-item p { font-size: 14px; color: #64748b; margin: 0 0 12px; line-height: 1.6; }
+  .matrix-item a { color: var(--primary); font-weight: 600; text-decoration: none; font-size: 14px; }
+  .long-desc { padding: 60px 0; border-bottom: 1px solid var(--border); }
+  .desc-flex { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+  @media (max-width: 768px) { .desc-flex { grid-template-columns: 1fr; } }
+  .desc-content h2 { font-size: 28px; color: var(--bg-dark); margin-bottom: 20px; }
+  .desc-content p { font-size: 16px; margin-bottom: 16px; color: #475569; line-height: 1.7; }
+  .desc-img img { width: 100%; border-radius: 16px; }
+  .recent-posts-section { padding: 60px 0; }
+  .posts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 30px; }
+  .post-card { text-decoration: none; color: inherit; padding: 18px; border: 1px solid var(--border); border-radius: 8px; }
+  .post-card:hover { background: #f8fafc; }
+  .post-card h4 { margin: 8px 0 0; font-size: 15px; color: var(--bg-dark); }
+  .post-card .date { font-size: 12px; color: #94a3b8; }
+</style>
+
+<section class="hero">
+  <div class="container">
+    <h2>DeepSeek 香港使用指南</h2>
+    <p>本站整理 DeepSeek 網頁版登入、API 接入、提示詞撰寫、503/429 錯誤排查與 Ollama 本地部署等實用資料，面向香港及繁體中文用戶。內容以可執行步驟為主，並非 DeepSeek 官方網站。</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="matrix-grid">
+    <div class="matrix-item">
+      <h3>網頁版登入排查</h3>
+      <p>登入失敗、503 忙碌、驗證碼異常與瀏覽器快取清理。</p>
+      <a href="/posts/deepseek-web-login-troubleshoot/">閱讀教程 →</a>
+    </div>
+    <div class="matrix-item">
+      <h3>API 密鑰與限流</h3>
+      <p>API Key 申請、429 限流處理與 Token 用量觀察。</p>
+      <a href="/posts/deepseek-api-key-and-limits/">閱讀教程 →</a>
+    </div>
+    <div class="matrix-item">
+      <h3>503/429 重試策略</h3>
+      <p>指數退避、熔斷與高峰期降級方案。</p>
+      <a href="/posts/deepseek-api-retry-guide/">閱讀教程 →</a>
+    </div>
+    <div class="matrix-item">
+      <h3>提示詞入門</h3>
+      <p>角色、任務、輸出格式三要素，降低幻覺。</p>
+      <a href="/posts/deepseek-prompt-basics/">閱讀教程 →</a>
+    </div>
+    <div class="matrix-item">
+      <h3>本地 Ollama 部署</h3>
+      <p>在 macOS / Windows 拉取 DeepSeek 模型並檢查繁體輸出。</p>
+      <a href="/posts/deepseek-ollama-local-setup/">閱讀教程 →</a>
+    </div>
+    <div class="matrix-item">
+      <h3>更多技術文章</h3>
+      <p>瀏覽完整列表，包含 API 安全與整合案例。</p>
+      <a href="/posts/">查看全部 →</a>
+    </div>
+  </div>
+
+  <section class="long-desc">
+    <div class="desc-flex">
+      <div class="desc-content">
+        <h2>先解決香港用戶的高頻問題</h2>
+        <p>不少團隊卡在 API 429/503、登入不穩、提示詞輸出格式混亂，或不清楚本地部署該選哪個模型。本站優先把這些場景拆成檢查清單，並補充 VPN、公司網絡等香港常見環境注意事項。</p>
+        <p>若準備接入 API，建議先閱讀密鑰與限流說明，再搭配重試策略；若計劃私有化部署，可從 Ollama 入門教程開始，再評估 RAG 與向量庫需求。</p>
+      </div>
+      <div class="desc-img">
+        <img src="https://neurowave.tech/images/img/img_deepseek-2.png" alt="DeepSeek 技術整合示意圖">
+      </div>
+    </div>
+  </section>
+
+  <section class="recent-posts-section">
+    <h3 style="font-size: 22px; border-bottom: 2px solid var(--bg-dark); padding-bottom: 10px;">最新教程</h3>
+    <div class="posts-grid">
+      {% for post in collections.indexablePosts | limit(5) %}
+        <a href="{{ post.url }}" class="post-card">
+          <span class="date">{{ post.date | dateFilter }}</span>
+          <h4>{{ post.data.title }}</h4>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+</div>

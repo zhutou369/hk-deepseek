@@ -1,0 +1,38 @@
+---
+layout: layouts/base.njk
+pagination:
+  data: collections.tagList
+  size: 1
+  alias: tag
+permalink: "/tags/{{ tag | tagSlug }}/index.html"
+eleventyComputed:
+  title: "Tags：{{ tag }} | {{ site.brand }}"
+  description: "瀏覽 {{ site.brand }} 中與 {{ tag }} 相關的實操文章與教程。"
+---
+
+{% set tagPosts = collections.posts | postsByTag(tag) %}
+
+<header class="archive-header">
+  <p class="archive-date">Tags 聚合頁</p>
+  <h2>Tags：{{ tag }}</h2>
+  <p>這裏整理了本站和「{{ tag }}」相關的文章，方便按主題追蹤 DeepSeek 教學、工具部署和自動化實操。</p>
+</header>
+
+<div class="archive-grid">
+  <div class="archive-list">
+    {% for post in tagPosts %}
+      <article class="archive-card">
+        <span class="archive-date">{{ post.date | dateFilter }}</span>
+        <h3><a href="{{ post.url }}">{{ post.data.title }}</a></h3>
+        <p>{{ post.data.description }}</p>
+        <a href="{{ post.url }}" class="archive-link">閱讀全文 &middot; 查看實操細節</a>
+      </article>
+    {% else %}
+      <p>這個 Tags 暫時未收錄文章，後續自動生成內容後會同步更新。</p>
+    {% endfor %}
+  </div>
+</div>
+
+<p style="margin-top: 30px;">
+  <a href="/posts/">返回文章檔案庫</a>
+</p>
