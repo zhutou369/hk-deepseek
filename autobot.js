@@ -225,7 +225,7 @@ async function runAutoBot() {
                 const allImages = fs.readFileSync(imagesPath, 'utf-8')
                     .split(/\r?\n/)
                     .map(line => line.trim()) 
-                    .filter(line => line.length > 0 && line.startsWith('http'));
+                    .filter(line => line.length > 0 && (line.startsWith('http') || line.startsWith('/static/')));
 
                 if (allImages.length >= 2) {
                     const shuffled = allImages.sort(() => 0.5 - Math.random());
