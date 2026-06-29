@@ -4,6 +4,7 @@ description: "在 Windows 與 macOS 上透過 Ollama 拉取 DeepSeek 模型、�
 date: 2026-06-27
 updated: 2026-06-29
 featured: true
+coverImage: "/static/posts/deepseek-ollama-cover.svg"
 tags: ["posts"]
 layout: "layouts/post.njk"
 permalink: "/posts/deepseek-ollama-local-setup/index.html"
@@ -24,6 +25,8 @@ permalink: "/posts/deepseek-ollama-local-setup/index.html"
 3. 首次拉取模型需下載數 GB 文件，請保持網絡穩定。
 
 ## 拉取 DeepSeek 模型
+
+![Ollama 安裝與拉取 DeepSeek 模型步驟](/static/posts/deepseek-ollama-step.svg)
 
 ```bash
 ollama pull deepseek-r1:7b

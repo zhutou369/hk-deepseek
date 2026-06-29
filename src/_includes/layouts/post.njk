@@ -21,6 +21,12 @@ layout: layouts/base.njk
       {% endif %}
     </header>
 
+    {% if coverImage %}
+    <figure class="post-cover">
+      <img src="{{ coverImage }}" alt="{{ title }}" width="800" height="450" loading="eager" decoding="async">
+    </figure>
+    {% endif %}
+
     <section class="post-body" style="font-size: 17px; color: #334155; line-height: 1.8; max-width: 800px; margin: 0 auto;">
       {{ content | safe }}
     </section>
@@ -66,7 +72,7 @@ layout: layouts/base.njk
   "dateModified": (updated | htmlDate) if updated else (date | htmlDate),
   "author": { "@type": "Organization", "name": site.brand },
   "publisher": { "@type": "Organization", "name": site.brand, "url": site.url },
-  "image": site.url + (site.ogImage or "/static/og-default.png"),
+  "image": site.url + (coverImage or ogImage or site.ogImage or "/static/og-default.png"),
   "mainEntityOfPage": site.url + page.url
 } | dump | safe }}
 </script>

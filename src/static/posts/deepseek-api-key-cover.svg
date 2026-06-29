@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="DeepSeek API ÆpPA:">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <rect x="60" y="60" width="680" height="330" rx="16" fill="#ffffff" fill-opacity="0.06" stroke="#334155"/>
+  <text x="80" y="110" fill="#93c5fd" font-family="Segoe UI, sans-serif" font-size="16" font-weight="600">DEEPSEEK API</text>
+  <text x="80" y="155" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="28" font-weight="700">API Key 3ËPA</text>
+  <text x="80" y="190" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="16">Æp‰hX> · 429 PA · Token (Ï</text>
+  <rect x="80" y="230" width="180" height="120" rx="10" fill="#1e40af"/>
+  <text x="110" y="270" fill="#dbeafe" font-family="Consolas, monospace" font-size="14">sk-""""""""</text>
+  <text x="110" y="300" fill="#bfdbfe" font-family="Segoe UI, sans-serif" font-size="13">platform.deepseek.com</text>
+  <rect x="290" y="250" width="120" height="40" rx="8" fill="#334155"/>
+  <text x="318" y="276" fill="#e2e8f0" font-family="Segoe UI, sans-serif" font-size="14">RPM / TPM</text>
+  <rect x="440" y="230" width="260" height="120" rx="10" fill="#7f1d1d"/>
+  <text x="470" y="270" fill="#fecaca" font-family="Segoe UI, sans-serif" font-size="22" font-weight="700">429</text>
+  <text x="470" y="305" fill="#fca5a5" font-family="Segoe UI, sans-serif" font-size="14">Too Many Requests</text>
+  <path d="M260 290 H290" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M410 290 H440" stroke="#64748b" stroke-width="3"/>
+</svg>

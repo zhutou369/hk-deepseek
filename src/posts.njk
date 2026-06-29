@@ -18,13 +18,20 @@ permalink: "posts/{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumbe
   </h1>
   <p style="color:#64748b; margin-bottom:40px;">以下為本站優先收錄、可直接照做的教程（含核心入門與編輯精選）。站內另有大量自動生成的參考文章（未納入 Google 搜索索引）。</p>
 
-  <div style="display: grid; gap: 30px; grid-template-columns: 1fr;">
+  <div class="posts-list">
     {% for post in posts %}
-      <article style="border-bottom: 1px solid var(--border); padding-bottom: 30px;">
-        <div style="font-size: 14px; color: var(--primary); margin-bottom: 10px;">{{ post.date | dateFilter }}</div>
-        <h2 style="margin:0 0 15px 0; font-size: 24px;"><a href="{{ post.url }}" style="text-decoration:none; color: var(--bg-dark);">{{ post.data.title }}</a></h2>
-        <p style="color:#64748b; font-size:15px; margin-bottom:15px;">{{ post.data.description }}</p>
-        <a href="{{ post.url }}" style="color:var(--primary); text-decoration:none; font-weight:600; font-size:14px;">閱讀全文 &raquo;</a>
+      <article class="posts-list-item">
+        {% if post.data.coverImage %}
+        <a href="{{ post.url }}" class="posts-list-thumb">
+          <img src="{{ post.data.coverImage }}" alt="{{ post.data.title }}" width="240" height="135" loading="lazy" decoding="async">
+        </a>
+        {% endif %}
+        <div class="posts-list-body">
+          <div style="font-size: 14px; color: var(--primary); margin-bottom: 10px;">{{ post.date | dateFilter }}</div>
+          <h2 style="margin:0 0 15px 0; font-size: 24px;"><a href="{{ post.url }}" style="text-decoration:none; color: var(--bg-dark);">{{ post.data.title }}</a></h2>
+          <p style="color:#64748b; font-size:15px; margin-bottom:15px;">{{ post.data.description }}</p>
+          <a href="{{ post.url }}" style="color:var(--primary); text-decoration:none; font-weight:600; font-size:14px;">閱讀全文 &raquo;</a>
+        </div>
       </article>
     {% endfor %}
   </div>

@@ -8,7 +8,7 @@
   {% set metaDescription = description or site.description %}
   {% set canonicalPath = canonicalUrl or page.url or "/" %}
   {% set canonical = site.url + canonicalPath %}
-  {% set shareImage = ogImage or site.ogImage or "/static/og-default.png" %}
+  {% set shareImage = ogImage or coverImage or site.ogImage or "/static/og-default.png" %}
   {% set shareImageAbs = site.url + shareImage %}
   <title>{% if page.url != "/" %}{{ docTitle }} | {{ site.brand }}{% else %}{{ site.title }}{% endif %}</title>
   <meta name="description" content="{{ metaDescription }}">

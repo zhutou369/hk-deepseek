@@ -1,0 +1,23 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420" role="img" aria-label="指數退避重試時間軸">
+  <rect width="800" height="420" fill="#f8fafc"/>
+  <text x="40" y="45" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="22" font-weight="700">指數退避重試時間軸</text>
+  <line x1="60" y1="120" x2="740" y2="120" stroke="#cbd5e1" stroke-width="3"/>
+  <circle cx="120" cy="120" r="14" fill="#ef4444"/>
+  <text x="95" y="160" fill="#334155" font-family="Segoe UI, sans-serif" font-size="14">失敗</text>
+  <circle cx="280" cy="120" r="14" fill="#f59e0b"/>
+  <text x="265" y="160" fill="#334155" font-family="Segoe UI, sans-serif" font-size="14">等 1s</text>
+  <circle cx="440" cy="120" r="14" fill="#f59e0b"/>
+  <text x="425" y="160" fill="#334155" font-family="Segoe UI, sans-serif" font-size="14">等 2s</text>
+  <circle cx="600" cy="120" r="14" fill="#f59e0b"/>
+  <text x="585" y="160" fill="#334155" font-family="Segoe UI, sans-serif" font-size="14">等 4s</text>
+  <circle cx="720" cy="120" r="14" fill="#22c55e"/>
+  <text x="705" y="160" fill="#334155" font-family="Segoe UI, sans-serif" font-size="14">成功</text>
+  <rect x="40" y="210" width="350" height="170" rx="12" fill="#fff" stroke="#cbd5e1"/>
+  <text x="60" y="245" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">503 服務不可用</text>
+  <text x="60" y="275" fill="#475569" font-family="Segoe UI, sans-serif" font-size="14">適合重試，需退避</text>
+  <text x="60" y="305" fill="#475569" font-family="Segoe UI, sans-serif" font-size="14">讀取 Retry-After（如有）</text>
+  <rect x="410" y="210" width="350" height="170" rx="12" fill="#fff" stroke="#cbd5e1"/>
+  <text x="430" y="245" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">429 超出限流</text>
+  <text x="430" y="275" fill="#475569" font-family="Segoe UI, sans-serif" font-size="14">等待時間應比 503 更長</text>
+  <text x="430" y="305" fill="#475569" font-family="Segoe UI, sans-serif" font-size="14">隊列 + 固定並發（≤2）</text>
+</svg>

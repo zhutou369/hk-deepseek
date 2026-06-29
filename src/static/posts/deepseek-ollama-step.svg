@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420" role="img" aria-label="Ollama ‰ÝÉÖ!‹e_">
+  <rect width="800" height="420" fill="#f8fafc"/>
+  <text x="40" y="45" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="22" font-weight="700">Ollama ë
+K</text>
+  <rect x="40" y="70" width="720" height="90" rx="12" fill="#0f172a"/>
+  <text x="60" y="105" fill="#64748b" font-family="Consolas, monospace" font-size="13">Step 1</text>
+  <text x="60" y="135" fill="#e2e8f0" font-family="Consolas, monospace" font-size="15">	‰Ý ollama.com ’ ollama --version</text>
+  <rect x="40" y="175" width="720" height="90" rx="12" fill="#0f172a"/>
+  <text x="60" y="210" fill="#64748b" font-family="Consolas, monospace" font-size="13">Step 2</text>
+  <text x="60" y="240" fill="#22c55e" font-family="Consolas, monospace" font-size="15">ollama pull deepseek-r1:7b</text>
+  <rect x="40" y="280" width="720" height="90" rx="12" fill="#0f172a"/>
+  <text x="60" y="315" fill="#64748b" font-family="Consolas, monospace" font-size="13">Step 3</text>
+  <text x="60" y="345" fill="#93c5fd" font-family="Consolas, monospace" font-size="15">ollama run deepseek-r1:7b  ·  Prompt ‹- ™/AÔ-‡</text>
+</svg>

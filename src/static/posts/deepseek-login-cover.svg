@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="DeepSeek ²H{e’å:">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <text x="80" y="100" fill="#93c5fd" font-family="Segoe UI, sans-serif" font-size="16" font-weight="600">WEB LOGIN</text>
+  <text x="80" y="145" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="28" font-weight="700">²H{e’å</text>
+  <text x="80" y="180" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="16">503 ÙŒ · WI¼ · ½hëÖ</text>
+  <rect x="220" y="220" width="360" height="180" rx="14" fill="#ffffff" fill-opacity="0.95"/>
+  <rect x="220" y="220" width="360" height="44" rx="14" fill="#e2e8f0"/>
+  <text x="340" y="250" fill="#334155" font-family="Segoe UI, sans-serif" font-size="16" font-weight="600">chat.deepseek.com</text>
+  <rect x="250" y="290" width="300" height="36" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="265" y="314" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="14">ûõ / Google {e</text>
+  <rect x="250" y="340" width="300" height="40" rx="8" fill="#2563eb"/>
+  <text x="365" y="366" fill="#fff" font-family="Segoe UI, sans-serif" font-size="15" font-weight="600">{e</text>
+  <rect x="600" y="250" width="120" height="50" rx="8" fill="#991b1b"/>
+  <text x="625" y="282" fill="#fecaca" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">503</text>
+</svg>

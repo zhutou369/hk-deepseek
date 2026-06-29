@@ -4,6 +4,7 @@ description: "實作 DeepSeek API 在 503 與 429 錯誤下的指數退避重試
 date: 2026-06-27
 updated: 2026-06-29
 featured: true
+coverImage: "/static/posts/deepseek-api-retry-cover.svg"
 tags: ["posts"]
 layout: "layouts/post.njk"
 permalink: "/posts/deepseek-api-retry-guide/index.html"
@@ -23,6 +24,8 @@ permalink: "/posts/deepseek-api-retry-guide/index.html"
 401/403 時請回到 [API Key 申請與安全存放](/posts/deepseek-api-key-and-limits/) 檢查 Key 是否過期、環境是否混用。
 
 ## 指數退避重試（Exponential Backoff）
+
+![503 與 429 指數退避重試時間軸](/static/posts/deepseek-api-retry-step.svg)
 
 基本流程：
 

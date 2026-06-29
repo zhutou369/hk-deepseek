@@ -256,6 +256,54 @@ a:hover {
   margin-top: 40px;
 }
 
+.post-cover {
+  max-width: 800px;
+  margin: 0 auto 40px;
+}
+
+.post-cover img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.post-body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 28px auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.posts-list {
+  display: grid;
+  gap: 30px;
+}
+
+.posts-list-item {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 30px;
+  align-items: start;
+}
+
+.posts-list-thumb img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .posts-list-item {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* 列表歸檔頁 */
 .archive-header {
   margin: 30px 0;

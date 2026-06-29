@@ -4,6 +4,7 @@ description: "說明 DeepSeek API Key 申請流程、常見限流規則、Token 
 date: 2026-06-27
 updated: 2026-06-29
 featured: true
+coverImage: "/static/posts/deepseek-api-key-cover.svg"
 tags: ["posts"]
 layout: "layouts/post.njk"
 permalink: "/posts/deepseek-api-key-and-limits/index.html"
@@ -12,6 +13,8 @@ permalink: "/posts/deepseek-api-key-and-limits/index.html"
 接入 DeepSeek API 前，先把密鑰管理與限流規則搞清楚，能避免上線後大量 429 錯誤；若已開始收到限流回應，可同步閱讀 [503/429 重試與熔斷策略](/posts/deepseek-api-retry-guide/)。
 
 ## API Key 申請與安全存放
+
+![DeepSeek API Key 申請四步流程](/static/posts/deepseek-api-key-step.svg)
 
 1. 登入 [DeepSeek 開發者平台](https://platform.deepseek.com)，建立專案並生成 API Key。
 2. Key 只顯示一次，請立即存入密鑰管理服務（如 GitHub Secrets、Vault、雲端 Secret Manager）。
