@@ -1,0 +1,46 @@
+---
+layout: layouts/base.njk
+title: 關於本站
+description: DeepSeek 香港使用資料站的定位、內容來源、收錄政策與聯絡方式。本站為第三方技術整理，非 DeepSeek 官方網站。
+permalink: /about/index.html
+---
+
+<div class="container" style="padding: 60px 0; max-width: 760px;">
+  <h1 style="font-size: 32px; color: var(--bg-dark); margin-bottom: 24px;">關於 DeepSeek 香港使用資料</h1>
+
+  <section style="margin-bottom: 32px; line-height: 1.8; color: #475569;">
+    <h2 style="font-size: 20px; color: var(--bg-dark); margin-bottom: 12px;">本站是什麼</h2>
+    <p>{{ site.brand }}（{{ site.url }}）是一個面向香港及繁體中文用戶的 <strong>第三方技術整理站</strong>，聚焦 DeepSeek 網頁版登入、API 接入、提示詞撰寫、錯誤排查與本地部署等實操主題。</p>
+    <p>本站 <strong>不是</strong> DeepSeek 官方網站，也不代表深度求索或其關聯公司。如需官方資訊，請前往 DeepSeek 官方渠道。</p>
+  </section>
+
+  <section style="margin-bottom: 32px; line-height: 1.8; color: #475569;">
+    <h2 style="font-size: 20px; color: var(--bg-dark); margin-bottom: 12px;">內容如何產生</h2>
+    <ul style="padding-left: 20px;">
+      <li><strong>核心教程</strong>：人工撰寫或精修，優先收錄進 Google 搜索（見 <a href="/posts/">核心教程列表</a>）。</li>
+      <li><strong>站內參考文</strong>：部分由自動化工具輔助生成，用於補充長尾場景；默認 <code>noindex</code>，不進 sitemap。</li>
+      <li>所有文章以「可執行步驟、常見問題、香港本地情境」為寫作標準。</li>
+    </ul>
+  </section>
+
+  <section style="margin-bottom: 32px; line-height: 1.8; color: #475569;">
+    <h2 style="font-size: 20px; color: var(--bg-dark); margin-bottom: 12px;">核心教程入口</h2>
+    <ul style="padding-left: 20px;">
+      <li><a href="/posts/deepseek-web-login-troubleshoot/">網頁版登入排查</a></li>
+      <li><a href="/posts/deepseek-api-key-and-limits/">API 密鑰與限流</a></li>
+      <li><a href="/posts/deepseek-api-retry-guide/">503/429 重試策略</a></li>
+      <li><a href="/posts/deepseek-prompt-basics/">提示詞入門</a></li>
+      <li><a href="/posts/deepseek-ollama-local-setup/">Ollama 本地部署</a></li>
+    </ul>
+  </section>
+
+  <section style="margin-bottom: 32px; line-height: 1.8; color: #475569;">
+    <h2 style="font-size: 20px; color: var(--bg-dark); margin-bottom: 12px;">免責聲明</h2>
+    <p>文內涉及的 API 價格、模型版本、功能上限可能隨官方更新而變化，請以 DeepSeek 官方公告為準。本站不提供 API 代售或官方客服。</p>
+  </section>
+
+  <section style="line-height: 1.8; color: #475569;">
+    <h2 style="font-size: 20px; color: var(--bg-dark); margin-bottom: 12px;">反饋與更正</h2>
+    <p>若發現內容過時或錯誤，歡迎透過托管本站的 GitHub 倉庫提交 Issue 更正（倉庫：zhutou369/hk-deepseek）。</p>
+  </section>
+</div>

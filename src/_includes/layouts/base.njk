@@ -54,6 +54,7 @@
         <ul class="nav-links">
           <li><a href="/" {% if page.url == "/" %}class="active"{% endif %}>首頁</a></li>
           <li><a href="/posts/" {% if page.url.startsWith('/posts/') %}class="active"{% endif %}>技術文章</a></li>
+          <li><a href="/about/" {% if page.url.startsWith('/about/') %}class="active"{% endif %}>關於</a></li>
         </ul>
       </nav>
     </div>
@@ -72,7 +73,7 @@
         </div>
       </div>
       <div class="copy">
-        <p>&copy; 2026 {{ site.brand }} · 本站為第三方使用說明與技術整理，非 DeepSeek 官方網站。</p>
+        <p>&copy; 2026 {{ site.brand }} · 本站為第三方使用說明與技術整理，非 DeepSeek 官方網站。<a href="/about/" style="color:#93c5fd;margin-left:8px;">關於本站</a></p>
       </div>
     </div>
   </footer>

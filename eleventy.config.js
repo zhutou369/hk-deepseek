@@ -1,6 +1,7 @@
 function isPostIndexable(data, inputPath) {
-  if (data.noindex === true || data.generated === true) return false;
+  if (data.noindex === true) return false;
   if (data.featured === true) return true;
+  if (data.generated === true) return false;
 
   const path = inputPath || "";
   if (/\/posts\/\d{4}-\d{2}-\d{2}-post-\d+-\d+\.md$/i.test(path)) return false;
