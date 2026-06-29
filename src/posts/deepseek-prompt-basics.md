@@ -2,14 +2,14 @@
 title: "DeepSeek 提示詞入門：減少空泛回答與幻覺"
 description: "用角色、任務、輸出格式三要素撰寫 DeepSeek 提示詞，並透過 Few-Shot 與約束條件降低幻覺與格式錯誤。"
 date: 2026-06-27
-updated: 2026-06-27
+updated: 2026-06-29
 featured: true
 tags: ["posts"]
 layout: "layouts/post.njk"
 permalink: "/posts/deepseek-prompt-basics/index.html"
 ---
 
-提示詞寫得好不好，差別往往在於模型是否清楚知道「要做什麼、按什麼格式輸出、哪些內容不能編造」。
+提示詞寫得好不好，差別往往在於模型是否清楚知道「要做什麼、按什麼格式輸出、哪些內容不能編造」。寫完 Prompt 後若要接入線上服務，記得配合 [API 限流與 Token 控制](/posts/deepseek-api-key-and-limits/) 避免單次請求過大。
 
 ## 三要素模板
 
@@ -47,6 +47,8 @@ permalink: "/posts/deepseek-prompt-basics/index.html"
 輸出：{"type":"auth","action":"check_api_key"}
 ```
 
+503 與 401 的實際排查可分別參考 [登入故障排查](/posts/deepseek-web-login-troubleshoot/) 與 [API Key 管理](/posts/deepseek-api-key-and-limits/)。
+
 ## 常見問題與修正
 
 | 問題 | 原因 | 修正 |
@@ -62,4 +64,4 @@ permalink: "/posts/deepseek-prompt-basics/index.html"
 2. 看輸出差異，再補充約束
 3. 固定可用的 Prompt 存成模板，避免每次從零寫起
 
-好的提示詞不是越長越好，而是约束清楚、示例具體、边界明確。
+想在本地反覆調 Prompt、又不想消耗 API 配額，可先用 [Ollama 跑小模型](/posts/deepseek-ollama-local-setup/) 做草稿測試。好的提示詞不是越長越好，而是约束清楚、示例具體、边界明確。

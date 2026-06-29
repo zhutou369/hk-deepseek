@@ -2,14 +2,14 @@
 title: "使用 Ollama 在本地運行 DeepSeek 模型"
 description: "在 Windows 與 macOS 上透過 Ollama 拉取 DeepSeek 模型、檢查繁體輸出品質，並排查常見的記憶體不足問題。"
 date: 2026-06-27
-updated: 2026-06-27
+updated: 2026-06-29
 featured: true
 tags: ["posts"]
 layout: "layouts/post.njk"
 permalink: "/posts/deepseek-ollama-local-setup/index.html"
 ---
 
-本地部署 DeepSeek 適合需要離線測試、敏感數據不便上雲，或想控制推理成本的場景。Ollama 是目前最簡單的入門方式之一。
+本地部署 DeepSeek 適合需要離線測試、敏感數據不便上雲，或想控制推理成本的場景。Ollama 是目前最簡單的入門方式之一。正式對外上線仍建議使用 [DeepSeek API](/posts/deepseek-api-key-and-limits/) 並做好 [限流重試](/posts/deepseek-api-retry-guide/)。
 
 ## 環境準備
 
@@ -19,7 +19,7 @@ permalink: "/posts/deepseek-ollama-local-setup/index.html"
 
 ## 安裝 Ollama
 
-1. 前往 Ollama 官網下載對應系統安裝包。
+1. 前往 [Ollama 官網](https://ollama.com) 下載對應系統安裝包。
 2. 安裝完成後，在終端執行 `ollama --version` 確認可用。
 3. 首次拉取模型需下載數 GB 文件，請保持網絡穩定。
 
@@ -48,7 +48,7 @@ ollama run deepseek-r1:7b
 若仍混用繁簡，可：
 
 - 換用較新的模型版本
-- 在 Prompt 中給出繁體輸出示例（Few-Shot）
+- 在 Prompt 中給出繁體輸出示例（Few-Shot），寫法見 [提示詞入門](/posts/deepseek-prompt-basics/)
 - 後處理用 OpenCC 做繁簡轉換（僅作輔助）
 
 ## 常見問題
@@ -67,7 +67,7 @@ ollama run deepseek-r1:7b
 
 ### 回答質量不穩
 
-- 提高 Prompt 约束（見提示詞入門教程）
+- 提高 Prompt 约束（見 [提示詞入門教程](/posts/deepseek-prompt-basics/)）
 - 對推理型任務使用 R1 系列；一般寫作用 V 系列可能更合適
 
 ## 何時該用本地，何時該用 API
@@ -79,4 +79,4 @@ ollama run deepseek-r1:7b
 | 快速驗證 Prompt | 本地小模型 |
 | 最強推理能力 | 雲端大模型 API |
 
-本地部署的价值在於可控與可離線；上線服務仍建議以官方 API 為主，並做好限流與重試。
+本地部署的价值在於可控與可離線；上線服務仍建議以官方 API 為主。網頁版使用問題可另見 [登入排查](/posts/deepseek-web-login-troubleshoot/)。更多香港本地化教程見 [本站首頁](/)。

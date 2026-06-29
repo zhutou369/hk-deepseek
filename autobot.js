@@ -297,6 +297,16 @@ async function runAutoBot() {
     9. 全篇保留可執行的技術信息，多用本地常用詞（如：教學、優化、中小企、網絡、顯示卡）。
     10. 請將主題翻譯為乾淨、地道、用連字符隔開的純英文 slug。
     11. 建議 Front Matter Tags：${visibleTags}。
+    12. 【正文內鏈規則】每篇必須遵守：
+       - 站內內鏈 2～5 條，錨文本用自然描述，禁止每個「DeepSeek」都加鏈。
+       - 官方外鏈 0～2 條（platform.deepseek.com / chat.deepseek.com / ollama.com），同一域名最多 1 次。
+       - 優先鏈到以下 pillar（按主題選 2～3 篇，必須相關）：
+         /posts/deepseek-api-key-and-limits/
+         /posts/deepseek-api-retry-guide/
+         /posts/deepseek-prompt-basics/
+         /posts/deepseek-web-login-troubleshoot/
+         /posts/deepseek-ollama-local-setup/
+       - 格式：[描述性錨文本](/posts/xxx/)，不要硬塞友鏈或站群域名。
     ${imagePromptInstruction}
 
     嚴格只輸出 JSON，不要使用 Markdown 代碼框，不要輸出 YAML。JSON 結構必須是：
@@ -326,6 +336,7 @@ async function runAutoBot() {
     - 隨機替換部分連接詞，不要通篇都是「此外」「因此」「同時」。
     - 長度 800-1500 字，段落長短錯落，用「## 目錄」做大欄目。
     - 保留 JSON 字段：title、description、slug、tags、body；不要輸出代碼框。
+    - 保留正文內 2～5 條站內 pillar 內鏈（/posts/deepseek-api-key-and-limits/ 等），錨文本自然，不要關鍵詞堆砌。
 
     待潤色 JSON：
     ${JSON.stringify(firstPassArticle, null, 2)}
