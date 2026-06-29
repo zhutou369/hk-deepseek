@@ -9,7 +9,9 @@ pageKeywords: DeepSeek香港,DeepSeek 登入,DeepSeek API,DeepSeek 提示詞,深
   .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; padding: 80px 0; text-align: center; }
   .hero p { font-size: 18px; color: #94a3b8; max-width: 760px; margin: 20px auto; line-height: 1.7; }
   .hero h2 { font-size: 42px; margin: 0; }
-  .matrix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: -40px 0 60px; }
+  .matrix-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: -40px 0 60px; }
+  @media (max-width: 992px) { .matrix-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 576px) { .matrix-grid { grid-template-columns: 1fr; } }
   .matrix-item { background: #fff; border: 1px solid var(--border); padding: 28px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
   .matrix-item h3 { color: var(--bg-dark); margin: 0 0 10px; font-size: 18px; }
   .matrix-item p { font-size: 14px; color: #64748b; margin: 0 0 12px; line-height: 1.6; }
@@ -20,12 +22,6 @@ pageKeywords: DeepSeek香港,DeepSeek 登入,DeepSeek API,DeepSeek 提示詞,深
   .desc-content h2 { font-size: 28px; color: var(--bg-dark); margin-bottom: 20px; }
   .desc-content p { font-size: 16px; margin-bottom: 16px; color: #475569; line-height: 1.7; }
   .desc-img img { width: 100%; border-radius: 16px; }
-  .recent-posts-section { padding: 60px 0; }
-  .posts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 30px; }
-  .post-card { text-decoration: none; color: inherit; padding: 18px; border: 1px solid var(--border); border-radius: 8px; }
-  .post-card:hover { background: #f8fafc; }
-  .post-card h4 { margin: 8px 0 0; font-size: 15px; color: var(--bg-dark); }
-  .post-card .date { font-size: 12px; color: #94a3b8; }
 </style>
 
 <section class="hero">
@@ -37,37 +33,15 @@ pageKeywords: DeepSeek香港,DeepSeek 登入,DeepSeek API,DeepSeek 提示詞,深
 
 <div class="container">
   <div class="matrix-grid">
+    {% for post in collections.homepagePosts %}
     <div class="matrix-item">
-      <h3>網頁版登入排查</h3>
-      <p>登入失敗、503 忙碌、驗證碼異常與瀏覽器快取清理。</p>
-      <a href="/posts/deepseek-web-login-troubleshoot/">閱讀教程 →</a>
+      <h3>{{ post.data.title }}</h3>
+      <p>{{ post.data.description }}</p>
+      <a href="{{ post.url }}">閱讀教程 →</a>
     </div>
-    <div class="matrix-item">
-      <h3>API 密鑰與限流</h3>
-      <p>API Key 申請、429 限流處理與 Token 用量觀察。</p>
-      <a href="/posts/deepseek-api-key-and-limits/">閱讀教程 →</a>
-    </div>
-    <div class="matrix-item">
-      <h3>503/429 重試策略</h3>
-      <p>指數退避、熔斷與高峰期降級方案。</p>
-      <a href="/posts/deepseek-api-retry-guide/">閱讀教程 →</a>
-    </div>
-    <div class="matrix-item">
-      <h3>提示詞入門</h3>
-      <p>角色、任務、輸出格式三要素，降低幻覺。</p>
-      <a href="/posts/deepseek-prompt-basics/">閱讀教程 →</a>
-    </div>
-    <div class="matrix-item">
-      <h3>本地 Ollama 部署</h3>
-      <p>在 macOS / Windows 拉取 DeepSeek 模型並檢查繁體輸出。</p>
-      <a href="/posts/deepseek-ollama-local-setup/">閱讀教程 →</a>
-    </div>
-    <div class="matrix-item">
-      <h3>更多技術文章</h3>
-      <p>瀏覽完整列表，包含 API 安全與整合案例。</p>
-      <a href="/posts/">查看全部 →</a>
-    </div>
+    {% endfor %}
   </div>
+  <p style="text-align:center;margin:-40px 0 60px;"><a href="/posts/" style="color:var(--primary);font-weight:600;text-decoration:none;">查看全部核心教程 →</a></p>
 
   <section class="long-desc">
     <div class="desc-flex">
@@ -79,18 +53,6 @@ pageKeywords: DeepSeek香港,DeepSeek 登入,DeepSeek API,DeepSeek 提示詞,深
       <div class="desc-img">
         <img src="/static/hero-deepseek.png" width="640" height="360" alt="DeepSeek 技術整合示意圖" loading="lazy">
       </div>
-    </div>
-  </section>
-
-  <section class="recent-posts-section">
-    <h3 style="font-size: 22px; border-bottom: 2px solid var(--bg-dark); padding-bottom: 10px;">最新教程</h3>
-    <div class="posts-grid">
-      {% for post in collections.indexablePosts | limit(5) %}
-        <a href="{{ post.url }}" class="post-card">
-          <span class="date">{{ post.date | dateFilter }}</span>
-          <h4>{{ post.data.title }}</h4>
-        </a>
-      {% endfor %}
     </div>
   </section>
 </div>

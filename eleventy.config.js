@@ -53,6 +53,19 @@ module.exports = function (eleventyConfig) {
       .sort((a, b) => b.date - a.date);
   });
 
+  eleventyConfig.addCollection("homepagePosts", function (collectionApi) {
+    const posts = collectionApi
+      .getFilteredByGlob("src/posts/*.md")
+      .filter((item) => isPostIndexable(item.data, item.inputPath));
+    const pillars = posts
+      .filter((item) => !/\/\d{4}-\d{2}-\d{2}-post-/.test(item.inputPath))
+      .sort((a, b) => a.inputPath.localeCompare(b.inputPath, "zh-HK"));
+    const featured = posts
+      .filter((item) => /\/\d{4}-\d{2}-\d{2}-post-/.test(item.inputPath))
+      .sort((a, b) => b.date - a.date);
+    return [...pillars, ...featured].slice(0, 8);
+  });
+
   eleventyConfig.addCollection("tagList", function (collectionApi) {
     const tagSet = new Set();
     collectionApi
