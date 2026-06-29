@@ -23,6 +23,7 @@ module.exports = function (eleventyConfig) {
 
   eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/static");
+  eleventyConfig.addPassthroughCopy({ "src/_headers": "_headers" });
   eleventyConfig.addPassthroughCopy("src/images.txt");
   eleventyConfig.addPassthroughCopy("src/ai1");
   eleventyConfig.addPassthroughCopy("src/robots.txt");

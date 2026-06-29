@@ -1,11 +1,11 @@
 ---
 layout: layouts/base.njk
 title: DeepSeek 香港技術文章與整合指南
-description: 瀏覽 DeepSeek 網頁版登入、API 接入、提示詞技巧、錯誤排查與本地部署等香港繁體中文教程。
+description: 瀏覽 DeepSeek 網頁版登入、API 接入、提示詞技巧、錯誤排查與本地部署等香港繁體中文核心教程。
 eleventyComputed:
   noindex: "{{ pagination.pageNumber > 0 }}"
 pagination:
-  data: collections.posts
+  data: collections.indexablePosts
   size: 10
   alias: posts
   reverse: true
@@ -14,9 +14,9 @@ permalink: "posts/{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumbe
 
 <div class="container" style="padding-top: 60px;">
   <h1 style="font-size: 32px; color: var(--bg-dark); margin-bottom: 20px; border-left: 6px solid var(--primary); padding-left: 20px;">
-    DeepSeek 技術文章列表
+    DeepSeek 核心教程
   </h1>
-  <p style="color:#64748b; margin-bottom:40px;">優先收錄可直接照做的入門教程；部分早期自動生成內容已從搜尋索引中排除，但仍保留供參考。</p>
+  <p style="color:#64748b; margin-bottom:40px;">以下為本站優先收錄、可直接照做的入門教程。站內另有大量自動生成的參考文章（未納入 Google 搜索索引），可從各文末尾「延伸閱讀」進入。</p>
 
   <div style="display: grid; gap: 30px; grid-template-columns: 1fr;">
     {% for post in posts %}

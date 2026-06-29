@@ -8,6 +8,8 @@
   {% set metaDescription = description or site.description %}
   {% set canonicalPath = canonicalUrl or page.url or "/" %}
   {% set canonical = site.url + canonicalPath %}
+  {% set shareImage = ogImage or site.ogImage or "/static/og-default.png" %}
+  {% set shareImageAbs = site.url + shareImage %}
   <title>{% if page.url != "/" %}{{ docTitle }} | {{ site.brand }}{% else %}{{ site.title }}{% endif %}</title>
   <meta name="description" content="{{ metaDescription }}">
   <meta name="keywords" content="{{ pageKeywords or site.keywords }}">
@@ -23,7 +25,10 @@
   <meta property="og:url" content="{{ canonical }}">
   <meta property="og:site_name" content="{{ site.brand }}">
   <meta property="og:locale" content="{{ site.locale }}">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="{{ shareImageAbs }}">
+  <meta property="og:image:alt" content="{{ docTitle }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{{ shareImageAbs }}">
   <script type="application/ld+json">
 {{ {
   "@context": "https://schema.org",
@@ -41,7 +46,7 @@
   <header class="site-header">
     <div class="container header-nav">
       {% if page.url == "/" %}
-        <h1 class="logo" style="margin:0;"><a href="/">{{ site.brand }}</a></h1>
+        <div class="logo" style="margin:0;font-size:inherit;font-weight:inherit;"><a href="/">{{ site.brand }}</a></div>
       {% else %}
         <div class="logo"><a href="/">{{ site.brand }}</a></div>
       {% endif %}
@@ -57,12 +62,13 @@
   <footer class="site-footer">
     <div class="container">
       <div class="friend-section">
-        <h4>相關 DeepSeek 資料站</h4>
+        <h4>其他語言 / 地區資料</h4>
+        <p style="font-size:12px;color:#94a3b8;margin:0 0 10px;">以下為獨立整理的姊妹站，內容區域與語言不同，僅供延伸閱讀。</p>
         <div class="friend-grid">
-          <a href="https://deepseek-chat.com" target="_blank" rel="noopener">DeepSeek 對話入口整理</a>
-          <a href="https://deepseek-in.com" target="_blank" rel="noopener">DeepSeek 產業應用資料</a>
-          <a href="https://deepseek-1.com" target="_blank" rel="noopener">DeepSeek 技術文章</a>
-          <a href="https://deepseek-my.com" target="_blank" rel="noopener">DeepSeek 馬來西亞資料</a>
+          <a href="https://deepseek-chat.com" target="_blank" rel="nofollow noopener">DeepSeek 對話入口整理</a>
+          <a href="https://deepseek-in.com" target="_blank" rel="nofollow noopener">DeepSeek 產業應用資料</a>
+          <a href="https://deepseek-1.com" target="_blank" rel="nofollow noopener">DeepSeek 技術文章</a>
+          <a href="https://deepseek-my.com" target="_blank" rel="nofollow noopener">DeepSeek 馬來西亞資料</a>
         </div>
       </div>
       <div class="copy">
