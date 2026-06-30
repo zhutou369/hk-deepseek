@@ -23,7 +23,7 @@ layout: layouts/base.njk
 
     {% if coverImage %}
     <figure class="post-cover">
-      <img src="{{ coverImage }}" alt="{{ title }}" width="800" height="450" loading="eager" decoding="async">
+      <img src="{{ coverImage | assetUrl }}" alt="{{ title }}" width="800" height="450" loading="eager" decoding="async">
     </figure>
     {% endif %}
 
@@ -72,7 +72,7 @@ layout: layouts/base.njk
   "dateModified": (updated | htmlDate) if updated else (date | htmlDate),
   "author": { "@type": "Organization", "name": site.brand },
   "publisher": { "@type": "Organization", "name": site.brand, "url": site.url },
-  "image": site.url + (coverImage or ogImage or site.ogImage or "/static/og-default.png"),
+  "image": site.url + ((coverImage or ogImage or site.ogImage or "/static/og-default.png") | assetUrl),
   "mainEntityOfPage": site.url + page.url
 } | dump | safe }}
 </script>

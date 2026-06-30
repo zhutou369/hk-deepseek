@@ -23,7 +23,7 @@ permalink: "posts/{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumbe
       <article class="posts-list-item">
         {% if post.data.coverImage %}
         <a href="{{ post.url }}" class="posts-list-thumb">
-          <img src="{{ post.data.coverImage }}" alt="{{ post.data.title }}" width="240" height="135" loading="lazy" decoding="async">
+          <img src="{{ post.data.coverImage | assetUrl }}" alt="{{ post.data.title }}" width="240" height="135" loading="lazy" decoding="async">
         </a>
         {% endif %}
         <div class="posts-list-body">

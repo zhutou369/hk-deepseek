@@ -1,3 +1,16 @@
+const siteData = require("./src/_data/site.json");
+
+function assetVersion() {
+  return siteData.assetVersion || "1";
+}
+
+function cacheBustStaticUrl(url) {
+  const path = String(url || "").trim();
+  if (!path.startsWith("/static/")) return path;
+  if (/[?&]v=/.test(path)) return path;
+  return `${path}?v=${assetVersion()}`;
+}
+
 function isPostIndexable(data, inputPath) {
   if (data.noindex === true) return false;
   if (data.featured === true) return true;
@@ -29,6 +42,14 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/ai1");
   eleventyConfig.addPassthroughCopy("src/robots.txt");
   eleventyConfig.addPassthroughCopy({ "src/*.txt": "/" });
+
+  eleventyConfig.addFilter("assetUrl", cacheBustStaticUrl);
+
+  eleventyConfig.addTransform("cache-bust-static-assets", function (content, outputPath) {
+    if (!outputPath || !outputPath.endsWith(".html")) return content;
+    const version = assetVersion();
+    return content.replace(/\/static\/[^"'\s<>]+\.svg(?![^"']*[?&]v=)/g, (path) => `${path}?v=${version}`);
+  });
 
   eleventyConfig.addGlobalData("eleventyComputed", {
     noindex: (data) => {
