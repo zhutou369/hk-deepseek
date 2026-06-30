@@ -41,6 +41,9 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/images.txt");
   eleventyConfig.addPassthroughCopy("src/ai1");
   eleventyConfig.addPassthroughCopy("src/robots.txt");
+  if (require("fs").existsSync("src/BingSiteAuth.xml")) {
+    eleventyConfig.addPassthroughCopy("src/BingSiteAuth.xml");
+  }
   eleventyConfig.addPassthroughCopy({ "src/*.txt": "/" });
 
   eleventyConfig.addFilter("assetUrl", cacheBustStaticUrl);
