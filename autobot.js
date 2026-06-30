@@ -56,6 +56,23 @@ function stripCodeFence(text) {
         .trim();
 }
 
+const ARTICLE_JSON_SCHEMA = {
+    type: 'object',
+    properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        slug: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } },
+        body: { type: 'string' }
+    },
+    required: ['title', 'description', 'slug', 'tags', 'body']
+};
+
+const ARTICLE_JSON_CONFIG = {
+    responseMimeType: 'application/json',
+    responseJsonSchema: ARTICLE_JSON_SCHEMA
+};
+
 function parseJsonResponse(text) {
     const clean = stripCodeFence(text);
     try {
@@ -63,8 +80,28 @@ function parseJsonResponse(text) {
     } catch (error) {
         const match = clean.match(/\{[\s\S]*\}/);
         if (!match) throw error;
-        return JSON.parse(match[0]);
+        try {
+            return JSON.parse(match[0]);
+        } catch (innerError) {
+            throw new Error(`JSON 解析失敗: ${innerError.message}`);
+        }
     }
+}
+
+async function generateJsonWithRetry(ai, contents, logLabel) {
+    const maxParseAttempts = 2;
+
+    for (let parseAttempt = 1; parseAttempt <= maxParseAttempts; parseAttempt++) {
+        const text = await generateWithRetry(ai, contents, logLabel, ARTICLE_JSON_CONFIG);
+        try {
+            return parseJsonResponse(text);
+        } catch (error) {
+            if (parseAttempt >= maxParseAttempts) throw error;
+            console.warn(`⚠️ ${logLabel} JSON 格式異常，重新請求 Gemini... (${error.message})`);
+        }
+    }
+
+    throw new Error('Gemini JSON 解析重試後仍失敗');
 }
 
 function slugify(value, fallback) {
@@ -136,7 +173,7 @@ ${article.body}
 `;
 }
 
-async function generateWithRetry(ai, contents, logLabel) {
+async function generateWithRetry(ai, contents, logLabel, config = {}) {
     let response;
     let retryCount = 0;
     const maxRetries = 3;
@@ -148,6 +185,7 @@ async function generateWithRetry(ai, contents, logLabel) {
             response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents,
+                config,
             });
 
             if (response && response.text) return response.text;
@@ -320,8 +358,13 @@ async function runAutoBot() {
         `;
 
         try {
-            const firstPassText = await generateWithRetry(ai, prompt, '正在連接 Gemini API 生成首輪 JSON 文章...');
-            const firstPassArticle = normalizeArticle(parseJsonResponse(firstPassText), currentTopic, todayStr, randomId, dynamicTags);
+            const firstPassArticle = normalizeArticle(
+                await generateJsonWithRetry(ai, prompt, '正在連接 Gemini API 生成首輪 JSON 文章...'),
+                currentTopic,
+                todayStr,
+                randomId,
+                dynamicTags
+            );
             console.log('🎉 首輪 JSON 文章生成成功，開始二次潤色。');
 
             const polishPrompt = `
@@ -342,8 +385,13 @@ async function runAutoBot() {
     ${JSON.stringify(firstPassArticle, null, 2)}
             `;
 
-            const polishedText = await generateWithRetry(ai, polishPrompt, '正在執行二次潤色短 Prompt...');
-            const polishedArticle = normalizeArticle(parseJsonResponse(polishedText), currentTopic, todayStr, randomId, dynamicTags);
+            const polishedArticle = normalizeArticle(
+                await generateJsonWithRetry(ai, polishPrompt, '正在執行二次潤色短 Prompt...'),
+                currentTopic,
+                todayStr,
+                randomId,
+                dynamicTags
+            );
             const articleContent = buildMarkdown(polishedArticle, todayStr, randomId);
 
             const fileName = `${todayStr}-post-${randomId}-${currentLoop}.md`;
