@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="DeepSeek �:^	� :">
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="DeepSeek 提示詞三要素示意">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0f172a"/>
@@ -7,15 +7,15 @@
   </defs>
   <rect width="800" height="450" fill="url(#bg)"/>
   <text x="80" y="100" fill="#93c5fd" font-family="Segoe UI, sans-serif" font-size="16" font-weight="600">PROMPT ENGINEERING</text>
-  <text x="80" y="145" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="28" font-weight="700">�:^	� </text>
-  <text x="80" y="180" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="16">�r � �� � 8�<</text>
+  <text x="80" y="145" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="28" font-weight="700">提示詞三要素</text>
+  <text x="80" y="180" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="16">角色 · 任務 · 輸出格式</text>
   <rect x="80" y="230" width="200" height="140" rx="12" fill="#1e3a8a"/>
-  <text x="110" y="275" fill="#bfdbfe" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">�r</text>
-  <text x="110" y="310" fill="#dbeafe" font-family="Segoe UI, sans-serif" font-size="14">���+</text>
+  <text x="110" y="275" fill="#bfdbfe" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">角色</text>
+  <text x="110" y="310" fill="#dbeafe" font-family="Segoe UI, sans-serif" font-size="14">資深工程師</text>
   <rect x="300" y="230" width="200" height="140" rx="12" fill="#065f46"/>
-  <text x="330" y="275" fill="#a7f3d0" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">��</text>
-  <text x="330" y="310" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="14">9� FAQ</text>
+  <text x="330" y="275" fill="#a7f3d0" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">任務</text>
+  <text x="330" y="310" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="14">改寫 FAQ</text>
   <rect x="520" y="230" width="200" height="140" rx="12" fill="#7c2d12"/>
-  <text x="550" y="275" fill="#fed7aa" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700"><</text>
+  <text x="550" y="275" fill="#fed7aa" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">格式</text>
   <text x="550" y="310" fill="#ffedd5" font-family="Segoe UI, sans-serif" font-size="14">Markdown / JSON</text>
 </svg>

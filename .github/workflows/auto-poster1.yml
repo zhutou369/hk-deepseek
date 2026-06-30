@@ -62,6 +62,9 @@ jobs:
 
     # 5. 強制解鎖 node_modules 可執行特權并编译网站
     # (同時在 src 源码目录和 _site 编译目录双重塞入验证文件，确保跟着源码一起被推回 GitHub)
+    - name: Validate SVG assets
+      run: node tools/validate-svgs.js
+
     - name: Build Eleventy Site
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}

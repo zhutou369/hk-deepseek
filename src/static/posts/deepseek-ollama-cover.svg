@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="Ollama ,0�r DeepSeek :">
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="Ollama 本地部署 DeepSeek 示意">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0f172a"/>
@@ -7,12 +7,12 @@
   </defs>
   <rect width="800" height="450" fill="url(#bg)"/>
   <text x="80" y="100" fill="#93c5fd" font-family="Segoe UI, sans-serif" font-size="16" font-weight="600">LOCAL DEPLOY</text>
-  <text x="80" y="145" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="28" font-weight="700">Ollama ,0 DeepSeek</text>
-  <text x="80" y="180" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="16">Windows � macOS � GPU / CPU</text>
+  <text x="80" y="145" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="28" font-weight="700">Ollama 本地 DeepSeek</text>
+  <text x="80" y="180" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="16">Windows · macOS · GPU / CPU</text>
   <rect x="80" y="230" width="300" height="160" rx="12" fill="#0f172a" stroke="#334155"/>
   <text x="100" y="270" fill="#22c55e" font-family="Consolas, monospace" font-size="14">$ ollama pull deepseek-r1:7b</text>
   <text x="100" y="305" fill="#94a3b8" font-family="Consolas, monospace" font-size="14">$ ollama run deepseek-r1:7b</text>
-  <text x="100" y="355" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="13">B�_,0�</text>
+  <text x="100" y="355" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="13">終端機本地推理</text>
   <rect x="420" y="250" width="120" height="100" rx="10" fill="#1e3a8a"/>
   <text x="450" y="310" fill="#dbeafe" font-family="Segoe UI, sans-serif" font-size="14">GPU</text>
   <rect x="560" y="250" width="120" height="100" rx="10" fill="#374151"/>

@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "eleventy",
+    "validate:svg": "node tools/validate-svgs.js",
+    "build": "npm run validate:svg && eleventy",
     "start": "eleventy --serve",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run validate:svg"
   },
   "keywords": [],
   "author": "",
