@@ -1,3 +1,6 @@
+/static/posts/*.svg
+  Cache-Control: public, max-age=86400, must-revalidate
+
 /static/*
   Cache-Control: public, max-age=604800, immutable
 
