@@ -71,18 +71,13 @@ jobs:
         BING_SITE_AUTH: ${{ secrets.BING_SITE_AUTH }}
       run: |
         chmod -R +x ./node_modules/.bin/
-        if [ -n "$INDEXNOW_KEY" ]; then
-          printf '%s' "$INDEXNOW_KEY" > "./src/${INDEXNOW_KEY}.txt"
-        fi
+        node tools/write-indexnow-key.js
         if [ -n "$BING_SITE_AUTH" ]; then
           printf '<?xml version="1.0"?>\n<users>\n  <user>%s</user>\n</users>\n' "$BING_SITE_AUTH" > ./src/BingSiteAuth.xml
           echo "✅ 已生成 BingSiteAuth.xml 供 Bing Webmaster 验证"
         fi
         npx @11ty/eleventy
-        if [ -n "$INDEXNOW_KEY" ]; then
-          printf '%s' "$INDEXNOW_KEY" > "./_site/${INDEXNOW_KEY}.txt"
-          echo "✅ 成功在内存源码与发布目录创建必应物理校验文件"
-        fi
+        node tools/write-indexnow-key.js
         if [ -n "$BING_SITE_AUTH" ] && [ -f ./src/BingSiteAuth.xml ]; then
           cp ./src/BingSiteAuth.xml ./_site/BingSiteAuth.xml
         fi
@@ -108,8 +103,10 @@ jobs:
 
     # 7. 🌟【智能化决胜步骤】线上文件不生效不推送，开启主动网络探测 🌟
     - name: Execute Instant SEO Push to Bing
+      continue-on-error: true
       env:
         INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        BING_DOMAIN: hk-deepseek.com
       run: |
         DOMAIN="hk-deepseek.com"
         VALIDATION_URL="https://${DOMAIN}/${INDEXNOW_KEY}.txt"

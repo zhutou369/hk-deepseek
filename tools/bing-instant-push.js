@@ -103,6 +103,8 @@ async function main() {
     console.error(`❌ 推送失败，状态码: ${statusCode}, 响应: ${body}`);
     if (statusCode === 403 && body.includes('UserForbiddedToAccessSite')) {
         console.error(BING_403_HELP);
+        console.error('⚠️  验证文件已在线，但 Bing 未授权 API。CI 将继续，请在 Bing Webmaster 完成站点验证后重试。');
+        process.exit(0);
     }
     process.exit(1);
 }
