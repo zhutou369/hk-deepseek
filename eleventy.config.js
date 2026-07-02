@@ -38,6 +38,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/static");
   eleventyConfig.addPassthroughCopy({ "src/_headers": "_headers" });
+  eleventyConfig.addPassthroughCopy({ "src/_redirects": "_redirects" });
   eleventyConfig.addPassthroughCopy("src/images.txt");
   eleventyConfig.addPassthroughCopy("src/ai1");
   eleventyConfig.addPassthroughCopy("src/robots.txt");
@@ -137,6 +138,11 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addFilter("htmlDate", function (dateValue) {
     if (!dateValue) return "";
     return new Date(dateValue).toISOString().slice(0, 10);
+  });
+
+  eleventyConfig.addFilter("rfc822", function (dateValue) {
+    if (!dateValue) return "";
+    return new Date(dateValue).toUTCString();
   });
 
   return {

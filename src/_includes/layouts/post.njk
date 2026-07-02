@@ -7,7 +7,7 @@ layout: layouts/base.njk
     <header style="margin-bottom: 50px; text-align: center;">
       <h1 style="font-size: 42px; line-height: 1.2; color: var(--bg-dark); margin: 0 0 20px;">{{ title }}</h1>
       <div style="color:#94a3b8; font-size:14px;">
-        發布時間：{{ date | dateFilter }}{% if updated %} · 更新於 {{ updated | dateFilter }}{% endif %}
+        發布時間：<time datetime="{{ date | htmlDate }}">{{ date | dateFilter }}</time>{% if updated %} · 更新於 <time datetime="{{ updated | htmlDate }}">{{ updated | dateFilter }}</time>{% endif %}
         · {{ site.brand }}
       </div>
       {% if tags and tags.length > 1 %}
