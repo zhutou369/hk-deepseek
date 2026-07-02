@@ -1,6 +1,7 @@
 const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const path = require('path');
+const { passesFeaturedQuality } = require('./tools/featured-quality');
 
 const SYSTEM_TAGS = new Set(['posts']);
 const TAG_POOL = [
@@ -155,16 +156,17 @@ function normalizeArticle(article, currentTopic, todayStr, randomId, dynamicTags
     };
 }
 
-function buildMarkdown(article, todayStr, randomId) {
+function buildMarkdown(article, todayStr, randomId, options = {}) {
     const permalink = `/posts/${todayStr}-${article.slug}-${randomId}/index.html`;
     const tags = JSON.stringify(article.tags);
+    const featuredLine = options.featured ? 'featured: true\n' : '';
 
     return `---
 title: "${yamlEscape(article.title)}"
 description: "${yamlEscape(article.description)}"
 date: ${todayStr}
 generated: true
-tags: ${tags}
+${featuredLine}tags: ${tags}
 layout: "layouts/post.njk"
 permalink: "${permalink}"
 ---
@@ -392,7 +394,11 @@ async function runAutoBot() {
                 randomId,
                 dynamicTags
             );
-            const articleContent = buildMarkdown(polishedArticle, todayStr, randomId);
+            const shouldFeature = currentLoop === 0 && passesFeaturedQuality(polishedArticle);
+            if (shouldFeature) {
+                console.log('⭐ 本篇通過精選質量檢查，將標記 featured: true（進入 /posts/ 列表與 Google 索引）');
+            }
+            const articleContent = buildMarkdown(polishedArticle, todayStr, randomId, { featured: shouldFeature });
 
             const fileName = `${todayStr}-post-${randomId}-${currentLoop}.md`;
             const outputDir = path.join(__dirname, 'src', 'posts'); 

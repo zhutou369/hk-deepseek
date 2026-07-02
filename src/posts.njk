@@ -8,7 +8,6 @@ pagination:
   data: collections.indexablePosts
   size: 10
   alias: posts
-  reverse: true
 permalink: "posts/{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumber + 1 }}/{% endif %}index.html"
 ---
 
@@ -16,7 +15,7 @@ permalink: "posts/{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumbe
   <h1 style="font-size: 32px; color: var(--bg-dark); margin-bottom: 20px; border-left: 6px solid var(--primary); padding-left: 20px;">
     DeepSeek 核心教程
   </h1>
-  <p style="color:#64748b; margin-bottom:40px;">以下為本站優先收錄、可直接照做的教程（含核心入門與編輯精選）。站內另有大量自動生成的參考文章（未納入 Google 搜索索引）。</p>
+  <p style="color:#64748b; margin-bottom:40px;">以下為本站優先收錄、可直接照做的教程（含核心入門與編輯精選）。標有精選的自動生成文章亦會出現在此；其餘參考文章僅供站內閱讀與必應收錄。</p>
 
   <div class="posts-list">
     {% for post in posts %}

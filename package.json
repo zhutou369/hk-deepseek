@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "validate:svg": "node tools/validate-svgs.js",
+    "promote:featured": "node tools/promote-featured.js",
     "build": "npm run validate:svg && eleventy",
     "start": "eleventy --serve",
     "test": "npm run validate:svg"

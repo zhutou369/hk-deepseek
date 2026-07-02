@@ -1,4 +1,5 @@
 const siteData = require("./src/_data/site.json");
+const { isPostIndexable } = require("./tools/featured-quality");
 
 function assetVersion() {
   return siteData.assetVersion || "1";
@@ -9,27 +10,6 @@ function cacheBustStaticUrl(url) {
   if (!path.startsWith("/static/")) return path;
   if (/[?&]v=/.test(path)) return path;
   return `${path}?v=${assetVersion()}`;
-}
-
-function isPostIndexable(data, inputPath) {
-  if (data.noindex === true) return false;
-  if (data.featured === true) return true;
-  if (data.generated === true) return false;
-
-  const path = inputPath || "";
-  if (/\/posts\/\d{4}-\d{2}-\d{2}-post-\d+-\d+\.md$/i.test(path)) return false;
-
-  const desc = data.description || "";
-  const title = data.title || "";
-  const tags = Array.isArray(data.tags) ? data.tags : [];
-
-  if (desc.includes("專業技術解析與香港本地化實操指南")) return false;
-  if (/官方|權威|站群|SEOer|友鏈|友链|跨境流量|免翻牆|爆款文案|搞掂友鏈|全攻略|爽歪歪|產業智能集成|重塑產業邊界/.test(title)) return false;
-  if (/SEOer|自動檢測\+對接|狂降\d+%/.test(title)) return false;
-  if (/實戰帖|小夥伴們注意|手把手教你/.test(desc)) return false;
-  if (tags.includes("SEO優化")) return false;
-
-  return true;
 }
 
 module.exports = function (eleventyConfig) {
