@@ -83,3 +83,10 @@ ollama run deepseek-r1:7b
 | 最強推理能力 | 雲端大模型 API |
 
 本地部署的价值在於可控與可離線；上線服務仍建議以官方 API 為主。網頁版使用問題可另見 [登入排查](/posts/deepseek-web-login-troubleshoot/)。更多香港本地化教程見 [本站首頁](/)。
+
+## 相關教程
+
+- [API 密鑰、限流與 429 處理](/posts/deepseek-api-key-and-limits/)
+- [503/429 重試與熔斷策略](/posts/deepseek-api-retry-guide/)
+- [提示詞入門與幻覺控制](/posts/deepseek-prompt-basics/)
+- [網頁版登入故障排查](/posts/deepseek-web-login-troubleshoot/)

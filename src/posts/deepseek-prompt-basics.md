@@ -68,3 +68,10 @@ permalink: "/posts/deepseek-prompt-basics/index.html"
 3. 固定可用的 Prompt 存成模板，避免每次從零寫起
 
 想在本地反覆調 Prompt、又不想消耗 API 配額，可先用 [Ollama 跑小模型](/posts/deepseek-ollama-local-setup/) 做草稿測試。好的提示詞不是越長越好，而是约束清楚、示例具體、边界明確。
+
+## 相關教程
+
+- [API 密鑰、限流與 429 處理](/posts/deepseek-api-key-and-limits/)
+- [503/429 重試與熔斷策略](/posts/deepseek-api-retry-guide/)
+- [網頁版登入故障排查](/posts/deepseek-web-login-troubleshoot/)
+- [Ollama 本地部署 DeepSeek](/posts/deepseek-ollama-local-setup/)

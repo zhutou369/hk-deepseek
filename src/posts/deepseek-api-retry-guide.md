@@ -84,3 +84,9 @@ def call_with_retry(fn, max_retries=4):
 - 使用的模型與 Token 數
 
 穩定的重試策略能把暫時性故障對用户的影響降到最低。若需離線兜底，可搭配 [本地 Ollama 部署](/posts/deepseek-ollama-local-setup/) 做降級推理。
+
+## 相關教程
+
+- [API 密鑰、限流與 429 處理](/posts/deepseek-api-key-and-limits/)
+- [提示詞入門與幻覺控制](/posts/deepseek-prompt-basics/)
+- [網頁版登入故障排查](/posts/deepseek-web-login-troubleshoot/)

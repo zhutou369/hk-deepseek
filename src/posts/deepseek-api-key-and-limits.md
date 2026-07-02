@@ -58,3 +58,10 @@ permalink: "/posts/deepseek-api-key-and-limits/index.html"
 敏感資料不便上雲時，可改用 [Ollama 本地部署](/posts/deepseek-ollama-local-setup/) 做 PoC；正式對外服務仍建議以 API 為主。更多香港本地化說明見 [本站首頁](/)。
 
 完成以上步驟，API 接入會穩定許多，也能在流量高峰時保持可預期的錯誤處理。
+
+## 相關教程
+
+- [503/429 重試與熔斷策略](/posts/deepseek-api-retry-guide/)
+- [提示詞入門與幻覺控制](/posts/deepseek-prompt-basics/)
+- [網頁版登入故障排查](/posts/deepseek-web-login-troubleshoot/)
+- [Ollama 本地部署 DeepSeek](/posts/deepseek-ollama-local-setup/)
