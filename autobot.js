@@ -8,6 +8,29 @@ const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5';
+// OpenRouter 聚合网关：一个 key 可调 Claude/GPT 等全部主流模型（香港卡好充）
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '';
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4.5';
+
+async function rewriteOpeningOpenRouter(title, body) {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OPENROUTER_KEY}`
+        },
+        body: JSON.stringify({
+            model: OPENROUTER_MODEL,
+            max_tokens: 800,
+            messages: [{ role: 'user', content: buildOpeningPrompt(title, body) }]
+        })
+    });
+    if (!resp.ok) throw new Error(`OpenRouter API ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+    const data = await resp.json();
+    const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if (!text || text.length < 60) throw new Error('OpenRouter 開頭重寫結果過短');
+    return spliceOpening(body, removeForbiddenPhrases(stripCodeFence(text).trim()));
+}
 
 async function chatDeepSeek(prompt) {
     const resp = await fetch('https://api.deepseek.com/chat/completions', {
@@ -491,7 +514,10 @@ async function runAutoBot() {
                     console.warn(`⚠️ ${label} 開頭重寫失敗，保留原文開頭: ${e.message}`);
                 }
             };
-            if (ANTHROPIC_KEY) {
+            if (OPENROUTER_KEY) {
+                await openingAttempt(`OpenRouter (${OPENROUTER_MODEL})`, async () =>
+                    rewriteOpeningOpenRouter(finalArticle.title, finalArticle.body));
+            } else if (ANTHROPIC_KEY) {
                 await openingAttempt('Claude', async () =>
                     rewriteOpeningWithClaude(finalArticle.title, finalArticle.body));
             } else if (process.env.GEMINI_API_KEY) {
