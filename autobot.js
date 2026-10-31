@@ -3,6 +3,78 @@ const fs = require('fs');
 const path = require('path');
 const { passesFeaturedQuality } = require('./tools/featured-quality');
 
+// ===== 多模型支持：DeepSeek 写正文（便宜量产） + Claude 重写开头 200 字（质量）=====
+const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5';
+
+async function chatDeepSeek(prompt) {
+    const resp = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_KEY}` },
+        body: JSON.stringify({
+            model: DEEPSEEK_MODEL,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' }
+        })
+    });
+    if (!resp.ok) throw new Error(`DeepSeek API ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+    const data = await resp.json();
+    const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if (!text) throw new Error('DeepSeek 返回內容為空');
+    return text;
+}
+
+async function rewriteOpeningWithClaude(title, body) {
+    const paras = body.split(/\n\s*\n/);
+    const opening = paras.slice(0, 2).join('\n\n');
+    const rest = paras.slice(2).join('\n\n');
+    const prompt = `你是資深技術編輯。為文章《${title}》重寫開頭兩段（合計 150-220 字），要求：
+1. 第一句必須含具體對象＋具體數字/日期/版本（只能使用原文已有的信息，嚴禁編造新數據）。
+2. 第二句直接說明「這篇文章解決什麼問題、看完能做到什麼」。
+3. 禁止：綜上所述、在當今數字化時代、隨著AI的發展、任何感嘆號、空話套話。
+4. 保持香港繁體中文（zh-HK）語感。
+只輸出重寫後的兩段正文，不要標題、不要任何解釋。
+
+原文開頭：
+${opening}`;
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ANTHROPIC_KEY,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: ANTHROPIC_MODEL,
+            max_tokens: 800,
+            messages: [{ role: 'user', content: prompt }]
+        })
+    });
+    if (!resp.ok) throw new Error(`Claude API ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+    const data = await resp.json();
+    const text = data && data.content && data.content[0] && data.content[0].text;
+    if (!text || text.length < 60) throw new Error('Claude 開頭重寫結果過短');
+    return removeForbiddenPhrases(text.trim()) + '\n\n' + rest;
+}
+
+async function generateArticleJson(ai, prompt, logLabel) {
+    if (DEEPSEEK_KEY) {
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+                console.log(`${logLabel} (DeepSeek 嘗試第 ${attempt} 次)`);
+                return parseJsonResponse(await chatDeepSeek(prompt));
+            } catch (error) {
+                console.warn(`⚠️ ${logLabel} DeepSeek 嘗試 ${attempt} 失敗: ${error.message}`);
+            }
+        }
+        if (!process.env.GEMINI_API_KEY) throw new Error('DeepSeek 兩次失敗且無 Gemini 回退');
+        console.warn('⚠️ DeepSeek 兩次失敗，回退 Gemini...');
+    }
+    return generateJsonWithRetry(ai, prompt, `${logLabel} (Gemini)`);
+}
+
 const SYSTEM_TAGS = new Set(['posts']);
 const TAG_POOL = [
     'DeepSeek教學',
@@ -328,6 +400,7 @@ async function runAutoBot() {
     4. 至少一段用第一人稱，例如「我測試時發現…」「上週升級後…」。
     5. 禁止用詞：綜上所述、毋庸置疑、在當今數字化時代、業界領先、全方位、深度融合、極致、官方、站群、SEO 霸屏、友鏈機器人。
     6. 刪掉「在當今」「隨著…的快速發展」這類開頭。
+    6.5. 技術斷言只允許基於官方公開信息（版本、價格、功能、報錯碼），嚴禁編造模型能力與數據；不確定的細節寫「以官方文檔為準」。
     7. 隨機選一種結構：
        A. 教程型（步驟+截圖描述）
        B. 評測型（3個維度打分+表格感描述）
@@ -361,7 +434,7 @@ async function runAutoBot() {
 
         try {
             const firstPassArticle = normalizeArticle(
-                await generateJsonWithRetry(ai, prompt, '正在連接 Gemini API 生成首輪 JSON 文章...'),
+                await generateArticleJson(ai, prompt, '首輪 JSON 文章'),
                 currentTopic,
                 todayStr,
                 randomId,
@@ -388,17 +461,28 @@ async function runAutoBot() {
             `;
 
             const polishedArticle = normalizeArticle(
-                await generateJsonWithRetry(ai, polishPrompt, '正在執行二次潤色短 Prompt...'),
+                await generateArticleJson(ai, polishPrompt, '二次潤色'),
                 currentTopic,
                 todayStr,
                 randomId,
                 dynamicTags
             );
-            const shouldFeature = currentLoop === 0 && passesFeaturedQuality(polishedArticle);
-            if (shouldFeature) {
-                console.log('⭐ 本篇通過精選質量檢查，將標記 featured: true（進入 /posts/ 列表與 Google 索引）');
+
+            // Claude 重写开头 200 字（决定收录与转化的部分用最强模型）
+            let finalArticle = polishedArticle;
+            if (ANTHROPIC_KEY) {
+                try {
+                    console.log('✍️ 使用 Claude 重寫開頭 200 字...');
+                    finalArticle = { ...polishedArticle, body: await rewriteOpeningWithClaude(finalArticle.title, finalArticle.body) };
+                } catch (e) {
+                    console.warn(`⚠️ Claude 開頭重寫失敗，保留原文開頭: ${e.message}`);
+                }
             }
-            const articleContent = buildMarkdown(polishedArticle, todayStr, randomId, { featured: shouldFeature });
+
+            // 自動精選已停用：此前「每天第一篇自動 featured」導致大量行業拼湊文進入 sitemap，
+            // 是整站被判 scaled content abuse 的主因。升級收錄一律走 GSC 數據 + tools/promote-featured.js 手動操作。
+            const shouldFeature = false;
+            const articleContent = buildMarkdown(finalArticle, todayStr, randomId, { featured: shouldFeature });
 
             const fileName = `${todayStr}-post-${randomId}-${currentLoop}.md`;
             const outputDir = path.join(__dirname, 'src', 'posts'); 

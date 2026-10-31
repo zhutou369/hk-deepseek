@@ -58,6 +58,10 @@ jobs:
     - name: Run Gemini Content Generator
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
+        ANTHROPIC_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
       run: node autobot.js ${{ github.event.inputs.post_count || '1' }}
 
     # 5. 強制解鎖 node_modules 可執行特權并编译网站
