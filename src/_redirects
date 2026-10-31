@@ -2,3 +2,18 @@
 /articles/*    /posts/:splat 301
 /rss.xml       /feed.xml   301
 /atom.xml      /feed.xml   301
+
+# youlian dead-link fixes
+/posts/deepseek-api-context-management/    /posts/deepseek-prompt-basics/    301
+/posts/deepseek-rag-practice-guide/    /posts/2026-05-20-deepseek-full-precision-quantized-performance-hk-developer-guide/    301
+/posts/api-whitelist-blacklist-strategy/    /posts/deepseek-api-key-and-limits/    301
+/posts/building-robust-api-security/    /posts/deepseek-api-key-and-limits/    301
+/posts/high-concurrency-api-rate-limiting-circuit-breaking/    /posts/deepseek-api-retry-guide/    301
+/posts/deepseek-api-parameters-guide/    /posts/deepseek-api-key-and-limits/    301
+/posts/deepseek-workflow-automation/    /posts/2026-05-19-deepseek-hong-kong-local-deployment-low-cost-enterprise-ai-975/    301
+/posts/deepseek-local-model-hybrid/    /posts/deepseek-ollama-local-setup/    301
+/posts/game-database-api-optimization/    /posts/2026-05-20-windows-11-nvidia-deepseek-troubleshooting-guide/    301
+
+# youlian dead-link fixes
+/posts/rag-deep-dive-best-practices/    /posts/2026-05-20-deepseek-full-precision-quantized-performance-hk-developer-guide/    301
+/posts/ollama-local-llm-setup/    /posts/deepseek-ollama-local-setup/    301
