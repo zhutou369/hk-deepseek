@@ -27,18 +27,7 @@ async function chatDeepSeek(prompt) {
 }
 
 async function rewriteOpeningWithClaude(title, body) {
-    const paras = body.split(/\n\s*\n/);
-    const opening = paras.slice(0, 2).join('\n\n');
-    const rest = paras.slice(2).join('\n\n');
-    const prompt = `你是資深技術編輯。為文章《${title}》重寫開頭兩段（合計 150-220 字），要求：
-1. 第一句必須含具體對象＋具體數字/日期/版本（只能使用原文已有的信息，嚴禁編造新數據）。
-2. 第二句直接說明「這篇文章解決什麼問題、看完能做到什麼」。
-3. 禁止：綜上所述、在當今數字化時代、隨著AI的發展、任何感嘆號、空話套話。
-4. 保持香港繁體中文（zh-HK）語感。
-只輸出重寫後的兩段正文，不要標題、不要任何解釋。
-
-原文開頭：
-${opening}`;
+    const openingPrompt = buildOpeningPrompt(title, body);
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -49,14 +38,34 @@ ${opening}`;
         body: JSON.stringify({
             model: ANTHROPIC_MODEL,
             max_tokens: 800,
-            messages: [{ role: 'user', content: prompt }]
+            messages: [{ role: 'user', content: openingPrompt }]
         })
     });
     if (!resp.ok) throw new Error(`Claude API ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
     const data = await resp.json();
     const text = data && data.content && data.content[0] && data.content[0].text;
     if (!text || text.length < 60) throw new Error('Claude 開頭重寫結果過短');
-    return removeForbiddenPhrases(text.trim()) + '\n\n' + rest;
+    return spliceOpening(body, removeForbiddenPhrases(text.trim()));
+}
+
+function buildOpeningPrompt(title, body) {
+    const paras = String(body || '').split(/\n\s*\n/);
+    const opening = paras.slice(0, 2).join('\n\n');
+    return `你是資深技術編輯。為文章《${title}》重寫開頭兩段（合計 150-220 字），要求：
+1. 第一句必須含具體對象＋具體數字/日期/版本（只能使用原文已有的信息，嚴禁編造新數據）。
+2. 第二句直接說明「這篇文章解決什麼問題、看完能做到什麼」。
+3. 禁止：綜上所述、在當今數字化時代、隨著AI的發展、任何感嘆號、空話套話。
+4. 保持香港繁體中文（zh-HK）語感。
+只輸出重寫後的兩段正文，不要標題、不要任何解釋。
+
+原文開頭：
+${opening}`;
+}
+
+function spliceOpening(body, newOpening) {
+    const paras = String(body || '').split(/\n\s*\n/);
+    const rest = paras.slice(2).join('\n\n');
+    return newOpening + (rest ? '\n\n' + rest : '');
 }
 
 async function generateArticleJson(ai, prompt, logLabel) {
@@ -247,7 +256,7 @@ ${article.body}
 `;
 }
 
-async function generateWithRetry(ai, contents, logLabel, config = {}) {
+async function generateWithRetry(ai, contents, logLabel, config = {}, model = 'gemini-2.5-flash') {
     let response;
     let retryCount = 0;
     const maxRetries = 3;
@@ -257,7 +266,7 @@ async function generateWithRetry(ai, contents, logLabel, config = {}) {
         try {
             console.log(`${logLabel} (嘗試第 ${retryCount + 1} 次)`);
             response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model,
                 contents,
                 config,
             });
@@ -468,15 +477,29 @@ async function runAutoBot() {
                 dynamicTags
             );
 
-            // Claude 重写开头 200 字（决定收录与转化的部分用最强模型）
+            // 開頭 200 字分層：Claude（有 key 時）> Gemini 2.5 Pro（用現有 key，零新增費用）> 保留原文
             let finalArticle = polishedArticle;
-            if (ANTHROPIC_KEY) {
+            const openingAttempt = async (label, fn) => {
                 try {
-                    console.log('✍️ 使用 Claude 重寫開頭 200 字...');
-                    finalArticle = { ...polishedArticle, body: await rewriteOpeningWithClaude(finalArticle.title, finalArticle.body) };
+                    console.log(`✍️ 使用 ${label} 重寫開頭 200 字...`);
+                    const newBody = await fn();
+                    if (newBody && newBody.length >= 60) {
+                        finalArticle = { ...polishedArticle, body: newBody };
+                        console.log(`✅ 開頭已由 ${label} 重寫`);
+                    }
                 } catch (e) {
-                    console.warn(`⚠️ Claude 開頭重寫失敗，保留原文開頭: ${e.message}`);
+                    console.warn(`⚠️ ${label} 開頭重寫失敗，保留原文開頭: ${e.message}`);
                 }
+            };
+            if (ANTHROPIC_KEY) {
+                await openingAttempt('Claude', async () =>
+                    rewriteOpeningWithClaude(finalArticle.title, finalArticle.body));
+            } else if (process.env.GEMINI_API_KEY) {
+                await openingAttempt('Gemini 2.5 Pro', async () => {
+                    const prompt2 = buildOpeningPrompt(finalArticle.title, finalArticle.body);
+                    const text = await generateWithRetry(ai, prompt2, '開頭重寫 (Pro)', {}, 'gemini-2.5-pro');
+                    return spliceOpening(finalArticle.body, removeForbiddenPhrases(stripCodeFence(text).trim()));
+                });
             }
 
             // 自動精選已停用：此前「每天第一篇自動 featured」導致大量行業拼湊文進入 sitemap，
