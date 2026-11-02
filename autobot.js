@@ -29,7 +29,7 @@ async function rewriteOpeningOpenRouter(title, body) {
     const data = await resp.json();
     const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
     if (!text || text.length < 60) throw new Error('OpenRouter 開頭重寫結果過短');
-    return spliceOpening(body, removeForbiddenPhrases(stripCodeFence(text).trim()));
+    return spliceOpening(body, cleanRewrittenOpening(removeForbiddenPhrases(stripCodeFence(text).trim())));
 }
 
 async function chatDeepSeek(prompt) {
@@ -68,7 +68,7 @@ async function rewriteOpeningWithClaude(title, body) {
     const data = await resp.json();
     const text = data && data.content && data.content[0] && data.content[0].text;
     if (!text || text.length < 60) throw new Error('Claude 開頭重寫結果過短');
-    return spliceOpening(body, removeForbiddenPhrases(text.trim()));
+    return spliceOpening(body, cleanRewrittenOpening(removeForbiddenPhrases(text.trim())));
 }
 
 function buildOpeningPrompt(title, body) {
@@ -89,6 +89,25 @@ function spliceOpening(body, newOpening) {
     const paras = String(body || '').split(/\n\s*\n/);
     const rest = paras.slice(2).join('\n\n');
     return newOpening + (rest ? '\n\n' + rest : '');
+}
+
+// 清洗模型重写输出里的对话残留（「好的，这是…」「以下是…」等前言泄漏）
+function cleanRewrittenOpening(text) {
+    let lines = String(text || '').split(/\n\s*\n/);
+    while (lines.length > 1) {
+        const first = lines[0].trim();
+        if (!first) { lines.shift(); continue; }
+        if (/^(好的|以下是|这是|這是|当然|當然|明白了|收到)[，,！!。：:]?.{0,30}[:：]?$/.test(first)) {
+            lines.shift();
+            continue;
+        }
+        if (/重寫|重写|開頭|开头|兩段|两段/.test(first) && first.length < 40) {
+            lines.shift();
+            continue;
+        }
+        break;
+    }
+    return lines.join('\n\n').trim();
 }
 
 async function generateArticleJson(ai, prompt, logLabel) {
