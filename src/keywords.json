@@ -1,5 +1,4 @@
 [
-  "DeepSeek API 函數調用(Function Calling)入門：天氣查詢機器人實作",
   "DeepSeek API 串流失敗排查：SSE 中斷、心跳超時與代理伺服器設定",
   "DeepSeek API 多輪對話的正確姿勢：上下文管理與 Token 省法",
   "DeepSeek SDK 選型：openai-python、openai-node 與官方 SDK 差異",
